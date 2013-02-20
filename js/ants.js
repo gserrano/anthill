@@ -1,7 +1,7 @@
 /*
 	Anthill
 */
-function Anthill(){
+var Anthill = function(){
 	var _hill = this;
 	var element = $("#canvas");
 
@@ -39,8 +39,20 @@ function Anthill(){
 
 		_hill.update();
 
-		var f = new _hill.Ant();
-		f.create();
+		
+		
+	};
+
+	this.create_ant = function() {
+		//Anthill should keep track of ants[] attributes, count and own draw functions
+		var ant = new this.Ant(_hill).create();
+		this.canvas.circle(this.global.x, this.global.y, this.radius);
+		this.ants[ant.id] = ant;
+
+		this.status.population += 1;
+		this.update();
+
+		return ant;
 	}
 
 	this.update = function(){
@@ -57,7 +69,10 @@ function Anthill(){
 		}
     }
 
-    this.animate = function(){
+    /*
+	no need for this.animate; this is an inner method that should not be called outside Anthill
+    */
+    var animate = function(){
     	_hill.canvas.clear();
 
     	/* Anthill */
@@ -78,7 +93,7 @@ function Anthill(){
 				line;
 
 			// console.log(ant.id);
-
+			//alert(ant.toSource());
 			if(ant.next_position !== undefined){
 				var	to_move_x = ant.next_position.x - ant.position.x,
 					to_move_y = ant.next_position.y - ant.position.y,
@@ -93,7 +108,7 @@ function Anthill(){
 
 					/* 
 					Calculate the smallest route (hypotenuse)
-					Thanks to Pitagoras and @chrisb
+					Thanks to Pitagoras and @chrisbenseler
 					*/
 					var hypotenuse = Math.sqrt((Math.pow(Math.abs(to_move_x),2) + Math.pow(Math.abs(to_move_y),2)));
 
@@ -153,7 +168,7 @@ function Anthill(){
 		}
     }
 
-    this.turn = setInterval(_hill.animate, _hill.global.timer);
+    this.turn = setInterval(animate, _hill.global.timer);
 
     /* Canvas */
     this.canvas = {};
@@ -205,182 +220,183 @@ function Anthill(){
     	}
     }
 
-	this.Ant = function(){
-		var _ant = this;
+	
+}
 
-		this.create = function(opts){
-			_ant.creationDate = new Date();
-			_ant.id = '_' + new Date().getTime();
-			_ant.speed = 0.8;
-			_ant.mapInfo = {
-				foods 	: {},
-				trashes	: {},
-				dumps	: {}
-			};
-			_ant.items = {};
-			_ant.gender = getRandom(0,1);
-			_ant.position = {
-				x : _hill.position.x,
-				y : _hill.position.y
-			}
-			_ant.color = _hill.global.ant_color;
-			_ant.radius = 4.5;
-			_ant.action_area = 30;
-			_ant.action_color = _hill.global.ant_action_color;
+Anthill.prototype.Ant = function(current_hill){
+	var _ant = this;
+	var _hill = current_hill;
 
-			if(opts && opts.type){
-				_ant.type = opts.type;
-			}else{
-				_ant.type = 0;
-			}
-			
-			_ant.status = {
-				sleep 		: 0,
-				hungry 		: 0,
-				busy		: 0
-			}
+	this.create = function(opts){
+		_ant.creationDate = new Date();
+		_ant.id = '_' + new Date().getTime();
+		_ant.speed = 0.8;
+		_ant.mapInfo = {
+			foods 	: {},
+			trashes	: {},
+			dumps	: {}
+		};
+		_ant.items = {};
+		_ant.gender = getRandom(0,1);
+		_ant.position = {
+			x : _hill.position.x,
+			y : _hill.position.y
+		}
+		_ant.color = _hill.global.ant_color;
+		_ant.radius = 4.5;
+		_ant.action_area = 30;
+		_ant.action_color = _hill.global.ant_action_color;
 
-			_hill.canvas.circle(_hill.global.x, _hill.global.y, _hill.radius);
-			_hill.ants[_ant.id] = this;
+		if(opts && opts.type){
+			_ant.type = opts.type;
+		}else{
+			_ant.type = 0;
+		}
+		
+		_ant.status = {
+			sleep 		: 0,
+			hungry 		: 0,
+			busy		: 0
+		};
 
-			_hill.status.population += 1;
-			_hill.update();
+		return this;
+
+		
+	}
+
+	/* Search food in map */
+	this.search_food = function(){
+		/*
+			Ant move "randomly" in one direction  find food
+		*/
+
+		// console.log(_ant.id + ' searching food');
+		_ant.status.busy = 1;
+		_ant.status.task = 'searching_food';
+
+
+		if(_ant.status.search_angle == undefined){
+			/* Ant "choose" one direction to go (360° angle) */
+			// console.log('redefine angle');
+			console.log(_ant.id + ' searching food');
+			_ant.status.search_angle = getRandom(0,360);
+			_ant.status.search_counter = 0;
 		}
 
-		/* Search food in map */
-		this.search_food = function(){
-			/*
-				Ant move "randomly" in one direction  find food
-			*/
-
-			// console.log(_ant.id + ' searching food');
-			_ant.status.busy = 1;
-			_ant.status.task = 'searching_food';
-
-
-			if(_ant.status.search_angle == undefined){
-				/* Ant "choose" one direction to go (360° angle) */
-				console.log('redefine angle');
-				console.log(_ant.id + ' searching food');
-				_ant.status.search_angle = getRandom(0,360);
-				_ant.status.search_counter = 0;
+		/* only move into canvas */
+		if(_ant.position.x < 0){
+			console.log('x < 0')
+			_ant.status.search_angle = getRandom(45,135);
+			console.log(_ant.status.search_angle);
+		}else if(_ant.position.x > _hill.global.width){
+			console.log('x > w')
+			_ant.status.search_angle = getRandom(225,315);
+			console.log(_ant.status.search_angle);
+		}else if(_ant.position.y < 0){
+			console.log('y < 0')
+			_ant.status.search_angle = getRandom(135,225);
+			console.log(_ant.status.search_angle);
+		}else if(_ant.position.y > _hill.global.height){
+			console.log('y > h')
+			if(getRandom(0,1) == 1){
+				_ant.status.search_angle = getRandom(0,89);	
+			}else{
+				_ant.status.search_angle = 315;
 			}
+			console.log(_ant.status.search_angle);
+		}
 
-			/* only move into canvas */
-			if(_ant.position.x < 0){
-				console.log('x < 0')
-				_ant.status.search_angle = getRandom(45,135);
-				console.log(_ant.status.search_angle);
-			}else if(_ant.position.x > _hill.global.width){
-				console.log('x > w')
-				_ant.status.search_angle = getRandom(225,315);
-				console.log(_ant.status.search_angle);
-			}else if(_ant.position.y < 0){
-				console.log('y < 0')
-				_ant.status.search_angle = getRandom(135,225);
-				console.log(_ant.status.search_angle);
-			}else if(_ant.position.y > _hill.global.height){
-				console.log('y > h')
-				if(getRandom(0,1) == 1){
-					_ant.status.search_angle = getRandom(0,89);	
+		var angle = _ant.status.search_angle;
+
+
+
+		if(angle >= 0 && angle < 45){
+			/* 0° */
+			var gox = getRandom(_ant.position.x - 15, _ant.position.x + 15);
+			var goy = getRandom(_ant.position.y - 15, _ant.position.y - 25);
+		}else if(angle >= 45 && angle < 90){
+			/* 45° */
+			var gox = getRandom(_ant.position.x, _ant.position.x + 35);
+			var goy = getRandom(_ant.position.y, _ant.position.y - 35);
+		}else if(angle >= 90 && angle < 135){
+			/* 90° */
+			var gox = getRandom(_ant.position.x + 10, _ant.position.x + 30);
+			var goy = getRandom(_ant.position.y - 20, _ant.position.y + 20);
+		}else if(angle >= 135 && angle < 180){
+			/* 135° */
+			var gox = getRandom(_ant.position.x, _ant.position.x + 35);
+			var goy = getRandom(_ant.position.y, _ant.position.y + 35);
+		}else if(angle >= 180 && angle < 225){
+			/* 180° */
+			var gox = getRandom(_ant.position.x - 15, _ant.position.x + 15);
+			var goy = getRandom(_ant.position.y + 15, _ant.position.y + 25);
+		}else if(angle >= 225 && angle < 270){
+			/* 225 */
+			var gox = getRandom(_ant.position.x, _ant.position.x - 35);
+			var goy = getRandom(_ant.position.y, _ant.position.y + 35);
+		}else if(angle >= 270 && angle < 315){
+			/* 225 */
+			var gox = getRandom(_ant.position.x - 10, _ant.position.x - 30);
+			var goy = getRandom(_ant.position.y - 20, _ant.position.y + 20);
+		}else if(angle >= 315){
+			/* 315 */
+			var gox = getRandom(_ant.position.x, _ant.position.x - 35);
+			var goy = getRandom(_ant.position.y, _ant.position.y - 35);
+		}
+
+		_ant.go(gox, goy);
+		_ant.callback = _ant.search_food;
+	}
+
+	/* Stop moving */
+	this.stop = function(){
+		_ant.next_position = undefined;
+	}
+
+	this.eat = function(){
+		if(_ant.position.x == _hill.position.x && _ant.position.y == _hill.position.y){
+			if(_hill.status.food > 0){
+				if(_ant.status.hungry > 0){
+					console.log('Eat!');
+					_hill.status.food -= 1;
+					_ant.status.hungry -= 2;
+					_hill.update();
+					setTimeout(_ant.eat, 1200);
 				}else{
-					_ant.status.search_angle = 315;
+					console.log('Full of food!');
+					_ant.status.hungry = 0;
+					_ant.status.busy = 0;
+					// _ant.sleep();
+					// _ant.get_food();
 				}
-				console.log(_ant.status.search_angle);
 			}
-
-			var angle = _ant.status.search_angle;
-
-
-
-			if(angle >= 0 && angle < 45){
-				/* 0° */
-				var gox = getRandom(_ant.position.x - 15, _ant.position.x + 15);
-				var goy = getRandom(_ant.position.y - 15, _ant.position.y - 25);
-			}else if(angle >= 45 && angle < 90){
-				/* 45° */
-				var gox = getRandom(_ant.position.x, _ant.position.x + 35);
-				var goy = getRandom(_ant.position.y, _ant.position.y - 35);
-			}else if(angle >= 90 && angle < 135){
-				/* 90° */
-				var gox = getRandom(_ant.position.x + 10, _ant.position.x + 30);
-				var goy = getRandom(_ant.position.y - 20, _ant.position.y + 20);
-			}else if(angle >= 135 && angle < 180){
-				/* 135° */
-				var gox = getRandom(_ant.position.x, _ant.position.x + 35);
-				var goy = getRandom(_ant.position.y, _ant.position.y + 35);
-			}else if(angle >= 180 && angle < 225){
-				/* 180° */
-				var gox = getRandom(_ant.position.x - 15, _ant.position.x + 15);
-				var goy = getRandom(_ant.position.y + 15, _ant.position.y + 25);
-			}else if(angle >= 225 && angle < 270){
-				/* 225 */
-				var gox = getRandom(_ant.position.x, _ant.position.x - 35);
-				var goy = getRandom(_ant.position.y, _ant.position.y + 35);
-			}else if(angle >= 270 && angle < 315){
-				/* 225 */
-				var gox = getRandom(_ant.position.x - 10, _ant.position.x - 30);
-				var goy = getRandom(_ant.position.y - 20, _ant.position.y + 20);
-			}else if(angle >= 315){
-				/* 315 */
-				var gox = getRandom(_ant.position.x, _ant.position.x - 35);
-				var goy = getRandom(_ant.position.y, _ant.position.y - 35);
-			}
-			
-			// var goy = _ant.position.y;
-			_ant.go(gox, goy);
-			_ant.callback = _ant.search_food;
+		}else{
+			console.log('not in anthill, go home');
+			_ant.go_home();
+			_ant.callback = _ant.eat;
 		}
+	}
 
-		/* Stop moving */
-		this.stop = function(){
-			_ant.next_position = undefined;
+	/* Die */
+	this.die = function(){
+		_hill.status.population -= 1;
+		_hill.update();
+		delete _hill.ants[_ant.id];
+	}
+
+	this.go = function(x,y){
+		_ant.next_position = {
+			x : x,
+			y : y
 		}
+	}
 
-		this.eat = function(){
-			if(_ant.position.x == _hill.position.x && _ant.position.y == _hill.position.y){
-				if(_hill.status.food > 0){
-					if(_ant.status.hungry > 0){
-						console.log('Eat!');
-						_hill.status.food -= 1;
-						_ant.status.hungry -= 2;
-						_hill.update();
-						setTimeout(_ant.eat, 1200);
-					}else{
-						console.log('Full of food!');
-						_ant.status.hungry = 0;
-						_ant.status.busy = 0;
-						// _ant.sleep();
-						// _ant.get_food();
-					}
-				}
-			}else{
-				console.log('not in anthill, go home');
-				_ant.go_home();
-				_ant.callback = _ant.eat;
-			}
-		}
+	this.go_home = function(){
+		_ant.status.busy = 1;
+		_ant.go(_hill.position.x, _hill.position.y);
+	}
 
-		/* Die */
-		this.die = function(){
-			_hill.status.population -= 1;
-			_hill.update();
-			delete _hill.ants[_ant.id];
-		}
-
-		this.go = function(x,y){
-			_ant.next_position = {
-				x : x,
-				y : y
-			}
-		}
-
-		this.go_home = function(){
-			_ant.status.busy = 1;
-			_ant.go(_hill.position.x, _hill.position.y);
-		}
-
-		this.feed = setInterval(function() {
+	this.feed = setInterval(function() {
 			_ant.status.hungry += 1;
 			if(_ant.status.hungry > 40){
 				_ant.die();
@@ -394,7 +410,7 @@ function Anthill(){
 					_ant.eat();
 				}
 			}
-		}, _hill.global.timer_hungry);
+	}, _hill.global.timer_hungry);
 
 		/* Tired ants? */
 		// this.sleepy = setInterval(function() {
@@ -407,8 +423,8 @@ function Anthill(){
 		// _ant.death = setTimeout(function(){
 		// 	_ant.die();
 		// },_ant.lifetime);
-		
-	}
+	//return the self object, to allow chainability
+	return this;		
 }
 
 
@@ -425,16 +441,27 @@ $(document).ready(function(){
 
 	/* Create food */
 	food = new hill.Food()
-	food.create(100,100)
+	food.create(100,100);
+
+	//can create an Ant in the Hill, name it and make it search for food
+	/*
+	var my_first_ant = hill.create_ant();
+	my_first_ant.search_food();
+	*/
+	//if you don't need to name the ant, just use chainability
+	hill
+		.create_ant()
+		.search_food();
 
 	/* Get ant and send to search food */
-	f = hill.get_idle_ant()
-	// f.search();
-	// f.go(200,150);
+
+	//var f = hill.get_idle_ant();
+	//f.search_food();
+	//f.go(200,150);
 	// f.eat();
 	// f.status.hungry
 
-	// var f2 = hill.Ant();
-	// f2.create();
-	// f2.search_food();
+	//var f2 = new hill.Ant();
+	//f2.create();
+	//f2.search_food();
 })
