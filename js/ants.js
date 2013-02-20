@@ -14,7 +14,7 @@ function Anthill(){
 		hill_color		: 'rgba(200,20,20,1)',
 		ant_color		: 'rgba(240,20,20,1)',
 		ant_action_color: 'rgba(240,20,20,0.2)',
-		timer 			: 50
+		timer 			: 20
 	}
 
 	this.ctx = element[0].getContext("2d");
@@ -77,6 +77,8 @@ function Anthill(){
 				to_move_y,
 				line;
 
+			// console.log(ant.id);
+
 			if(ant.next_position !== undefined){
 				var	to_move_x = ant.next_position.x - ant.position.x,
 					to_move_y = ant.next_position.y - ant.position.y,
@@ -135,12 +137,15 @@ function Anthill(){
 						}
 
 						if(ant.status.task == 'searching_food'){
-							console.log('Ant found food')
-							ant.stop();
+							console.log('Ant found food');
+							delete ant.search_angle;
+							delete ant.callback;
+							ant.status.task == 'go_home';
+							ant.go_home();
+							// ant.stop();
 						}
 					}
 				}
-
 			}
 			
 			_hill.canvas.circle(ant.position.x, ant.position.y, ant.action_area, ant.action_color);
@@ -206,7 +211,7 @@ function Anthill(){
 		this.create = function(opts){
 			_ant.creationDate = new Date();
 			_ant.id = '_' + new Date().getTime();
-			_ant.speed = 2.5;
+			_ant.speed = 0.8;
 			_ant.mapInfo = {
 				foods 	: {},
 				trashes	: {},
@@ -243,10 +248,88 @@ function Anthill(){
 		}
 
 		/* Search food in map */
-		this.search = function(){
+		this.search_food = function(){
+			/*
+				Ant move "randomly" in one direction  find food
+			*/
+
+			// console.log(_ant.id + ' searching food');
 			_ant.status.busy = 1;
 			_ant.status.task = 'searching_food';
-			f.go(0,0)
+
+
+			if(_ant.status.search_angle == undefined){
+				/* Ant "choose" one direction to go (360° angle) */
+				console.log('redefine angle');
+				console.log(_ant.id + ' searching food');
+				_ant.status.search_angle = getRandom(0,360);
+				_ant.status.search_counter = 0;
+			}
+
+			/* only move into canvas */
+			if(_ant.position.x < 0){
+				console.log('x < 0')
+				_ant.status.search_angle = getRandom(45,135);
+				console.log(_ant.status.search_angle);
+			}else if(_ant.position.x > _hill.global.width){
+				console.log('x > w')
+				_ant.status.search_angle = getRandom(225,315);
+				console.log(_ant.status.search_angle);
+			}else if(_ant.position.y < 0){
+				console.log('y < 0')
+				_ant.status.search_angle = getRandom(135,225);
+				console.log(_ant.status.search_angle);
+			}else if(_ant.position.y > _hill.global.height){
+				console.log('y > h')
+				if(getRandom(0,1) == 1){
+					_ant.status.search_angle = getRandom(0,89);	
+				}else{
+					_ant.status.search_angle = 315;
+				}
+				console.log(_ant.status.search_angle);
+			}
+
+			var angle = _ant.status.search_angle;
+
+
+
+			if(angle >= 0 && angle < 45){
+				/* 0° */
+				var gox = getRandom(_ant.position.x - 15, _ant.position.x + 15);
+				var goy = getRandom(_ant.position.y - 15, _ant.position.y - 25);
+			}else if(angle >= 45 && angle < 90){
+				/* 45° */
+				var gox = getRandom(_ant.position.x, _ant.position.x + 35);
+				var goy = getRandom(_ant.position.y, _ant.position.y - 35);
+			}else if(angle >= 90 && angle < 135){
+				/* 90° */
+				var gox = getRandom(_ant.position.x + 10, _ant.position.x + 30);
+				var goy = getRandom(_ant.position.y - 20, _ant.position.y + 20);
+			}else if(angle >= 135 && angle < 180){
+				/* 135° */
+				var gox = getRandom(_ant.position.x, _ant.position.x + 35);
+				var goy = getRandom(_ant.position.y, _ant.position.y + 35);
+			}else if(angle >= 180 && angle < 225){
+				/* 180° */
+				var gox = getRandom(_ant.position.x - 15, _ant.position.x + 15);
+				var goy = getRandom(_ant.position.y + 15, _ant.position.y + 25);
+			}else if(angle >= 225 && angle < 270){
+				/* 225 */
+				var gox = getRandom(_ant.position.x, _ant.position.x - 35);
+				var goy = getRandom(_ant.position.y, _ant.position.y + 35);
+			}else if(angle >= 270 && angle < 315){
+				/* 225 */
+				var gox = getRandom(_ant.position.x - 10, _ant.position.x - 30);
+				var goy = getRandom(_ant.position.y - 20, _ant.position.y + 20);
+			}else if(angle >= 315){
+				/* 315 */
+				var gox = getRandom(_ant.position.x, _ant.position.x - 35);
+				var goy = getRandom(_ant.position.y, _ant.position.y - 35);
+			}
+			
+			// var goy = _ant.position.y;
+			_ant.go(gox, goy);
+			_ant.callback = _ant.search_food;
 		}
 
 		/* Stop moving */
@@ -350,4 +433,8 @@ $(document).ready(function(){
 	// f.go(200,150);
 	// f.eat();
 	// f.status.hungry
+
+	// var f2 = hill.Ant();
+	// f2.create();
+	// f2.search_food();
 })
