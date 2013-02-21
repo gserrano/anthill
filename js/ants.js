@@ -51,8 +51,11 @@ var Anthill = function(){
 
 		this.status.population += 1;
 		this.update();
-
 		return ant;
+	}
+
+	Anthill.prototype.Ant.die = function() {
+		Anthill.kill_ant(this);
 	}
 
 	this.update = function(){
@@ -67,6 +70,12 @@ var Anthill = function(){
 				return ant;
 			}
 		}
+    }
+
+    this.kill_ant = function(ant) {
+    	this.status.population -= 1;
+		this.update();
+		delete this.ants[ant.id];
     }
 
     /*
@@ -377,11 +386,12 @@ Anthill.prototype.Ant = function(current_hill){
 		}
 	}
 
-	/* Die */
-	this.die = function(){
-		_hill.status.population -= 1;
-		_hill.update();
-		delete _hill.ants[_ant.id];
+	/* Die
+	An Ant doesn't know how it dies. Anyone (God?) has to tell him
+	 */
+	this.die = function(how_i_die){
+		if(typeof how_i_die=='function')
+			how_i_die(this);
 	}
 
 	this.go = function(x,y){
@@ -399,7 +409,7 @@ Anthill.prototype.Ant = function(current_hill){
 	this.feed = setInterval(function() {
 			_ant.status.hungry += 1;
 			if(_ant.status.hungry > 40){
-				_ant.die();
+				_anr.die();
 			}else if(_ant.status.hungry > 25){
 				_ant.status.busy = 1;
 				_ant.status.task = 'eating';
@@ -444,15 +454,16 @@ $(document).ready(function(){
 	food.create(100,100);
 
 	//can create an Ant in the Hill, name it and make it search for food
-	/*
+	
 	var my_first_ant = hill.create_ant();
 	my_first_ant.search_food();
-	*/
+	
 	//if you don't need to name the ant, just use chainability
 	hill
 		.create_ant()
 		.search_food();
 
+	hill.kill_ant(my_first_ant);
 	/* Get ant and send to search food */
 
 	//var f = hill.get_idle_ant();
