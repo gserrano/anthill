@@ -140,8 +140,23 @@ function Anthill(){
 								ant.callback();
 							}
 						}
+					}
 
+					/* Ants colision */
+					for (var i in _hill.ants){
+						var ant2 = _hill.ants[i];
 
+						/* self collision doesn't exist */
+						if(ant.id != ant2.id){
+							var squareX = Math.pow(Math.abs(ant.position.x - ant2.position.x), 2);
+							var squareY = Math.pow(Math.abs(ant.position.y - ant2.position.y), 2);
+							var hypothenuse = Math.sqrt(squareX + squareY);
+							var distance = hypothenuse - ant.action_area - ant2.action_area;
+
+							if (distance <= 0) {
+								ant.communicate(ant2);
+							}
+						}
 					}
 				}
 			}
@@ -257,8 +272,19 @@ function Anthill(){
 			}
 		}
 
-		this.communicate = function(){
-			
+		/* Synchronize ant information */
+		this.communicate = function(ant2){
+			console.log('communicate()')
+			for (var i in ant2.mapInfo.foods){
+				if(_ant.mapInfo.foods[i]){
+					if(ant2.mapInfo.foods[i] > _ant.mapInfo.foods[i]){
+						_ant.mapInfo.foods[i] = ant2.mapInfo.foods[i];
+						console.log(_ant.id + ' get info about food')
+					}
+				}else{
+					_ant.mapInfo.foods[i] = ant2.mapInfo.foods[i];
+				}
+			}
 		}
 
 		this.get_food = function(){
@@ -329,7 +355,7 @@ function Anthill(){
 
 		/* Search food in map */
 		this.search_food = function(){
-			console.log(_ant.id + ' search_food()')
+			// console.log(_ant.id + ' search_food()')
 			/*
 				Ant move "randomly" in one direction  find food
 			*/
