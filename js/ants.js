@@ -62,7 +62,7 @@ function Anthill(){
 		}
     }
 
-    this.animate = function(){
+    var animate = function(){
     	_hill.canvas.clear();
 
     	/* Anthill */
@@ -98,7 +98,7 @@ function Anthill(){
 
 					/* 
 					Calculate the smallest route (hypotenuse)
-					Thanks to Pitagoras and @chrisb
+					Thanks to Pitagoras and @chrisbenseler
 					*/
 					var hypotenuse = Math.sqrt((Math.pow(Math.abs(to_move_x),2) + Math.pow(Math.abs(to_move_y),2)));
 
@@ -151,7 +151,7 @@ function Anthill(){
 		}
     }
 
-    this.turn = setInterval(_hill.animate, _hill.global.timer);
+    this.turn = setInterval(animate, _hill.global.timer);
 
     /* Canvas */
     this.canvas = {};
@@ -255,15 +255,6 @@ function Anthill(){
 				food 		 : food.food,
 				position 	 : food.position
 			}
-		}
-
-		this.teste = function(){
-			_ant.go(100,100);
-			_ant.callback = _ant.teste2;
-		}
-		this.teste2 = function(){
-			_ant.go(200,100);
-			_ant.callback = _ant.teste;
 		}
 
 		this.get_food = function(){
