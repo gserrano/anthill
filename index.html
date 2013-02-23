@@ -14,34 +14,56 @@
   <meta name="description" content="Anthill is an experimental project to build a javascript 'ecosystem' of ants with a bottom-up community.">
   <meta name="author" content="gserrano" >
 
-  <!-- Mobile viewport optimized: j.mp/bplateviewport -->
   <meta name="viewport" content="width=device-width,initial-scale=1">
 
-  <!-- Place favicon.ico and apple-touch-icon.png in the root directory: mathiasbynens.be/notes/touch-icons -->
-
-  <!-- CSS: implied media=all -->
-  <!-- CSS concatenated and minified via ant build script-->
-  <!-- end CSS-->
+  <link rel="stylesheet" href="css/bootstrap.min.css" type="text/css" media="all" /> 
+  <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Pacifico" type="text/css" media="all" /> 
+  <link rel="stylesheet" href="css/style.css" type="text/css" media="all" /> 
 </head>
 
 <body>
-  <style type="text/css">
-    #canvas{
-      background: #efefef;
-      width: 550px;
-      height: 550px;
-      margin: 0 auto;
-      border: 1px solid #333;
-    }
-  </style>
-  <canvas id="canvas" width="550" height="550">
+  <div class="navbar navbar-inverse navbar-fixed-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
 
-  </canvas>
-  <p>
-  Formigas: <span id="ants"></span> <br>
-  Comida: <span id="food"></span> <br>
-  </p>
+        <a class="brand" href="#">anthill</a>
+
+        <div class="nav-collapse collapse">
+          <div class="navbar-form pull-right anthill-status">
+            Formigas: <span id="ants"></span> | Comida: <span id="food"></span>
+          </div>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+  </div><!--/.navbar-fixed-top -->
+
+  <div class="container">
+    <div class="row">
+      <div class="span6">
+        <canvas id="canvas" width="550" height="550"></canvas>
+      </div>
+      <div class="span6">
+        <h1 class="brand">anthill - javascript experiment</h1>
+        <br><br>
+        <p>
+          Anthill is an experimental project to build an "ecosystem" of ants with a bottom-up community.
+        </p>
+      </div>
+      
+    </div>
+  </div>
+
+
+
+  <script src="js/jquery-1.9.1.min.js"></script>
+  <script src="js/bootstrap.min.js"></script>
   <script src="js/ants.js"></script>
   <script src="js/script.js"></script>
+
 </body>
 </html>

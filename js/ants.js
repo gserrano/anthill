@@ -257,6 +257,10 @@ function Anthill(){
 			}
 		}
 
+		this.communicate = function(){
+			
+		}
+
 		this.get_food = function(){
 			_ant.status.busy = 1;
 			_ant.status.task.label = 'getting_food';
