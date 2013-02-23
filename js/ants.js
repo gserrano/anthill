@@ -1,3 +1,10 @@
+function objSize(obj) {
+  var len = obj.length ? --obj.length : 0;
+    for (var k in obj)
+      len++;
+  return len;
+}
+
 /*
 	Anthill
 */
@@ -12,8 +19,8 @@ function Anthill(){
 		height			: element.height(),
 		hill_radius		: 8,
 		hill_color		: 'rgba(200,20,20,1)',
-		ant_color		: 'rgba(240,20,20,1)',
-		ant_action_color: 'rgba(240,20,20,0.2)',
+		ant_color		: 'rgba(60,10,10,1)',
+		ant_action_color: 'rgba(240,20,20,0.1)',
 		timer 			: 20
 	}
 
@@ -38,9 +45,6 @@ function Anthill(){
 		}
 
 		_hill.update();
-
-		var f = new _hill.Ant();
-		f.create();
 	}
 
 	this.update = function(){
@@ -77,7 +81,7 @@ function Anthill(){
 				to_move_y,
 				line;
 
-			// console.log(ant.id);
+			// console.log(ant.callback);
 
 			if(ant.next_position !== undefined){
 				var	to_move_x = ant.next_position.x - ant.position.x,
@@ -118,32 +122,25 @@ function Anthill(){
 							ant.position.y -= (Math.abs(to_move_y) * ant.speed) / hypotenuse;
 						}
 					}
-				}
 
-				/* Food colision */
-				for (var i in _hill.foods){
-					var food = _hill.foods[i];
+					/* Food colision */
+					for (var i in _hill.foods){
+						var food = _hill.foods[i];
 
-					var squareX = Math.pow(Math.abs(ant.position.x - food.position.x), 2);
-					var squareY = Math.pow(Math.abs(ant.position.y - food.position.y), 2);
-					var hypothenuse = Math.sqrt(squareX + squareY);
-					var distance = hypothenuse - ant.action_area - food.smell;
+						var squareX = Math.pow(Math.abs(ant.position.x - food.position.x), 2);
+						var squareY = Math.pow(Math.abs(ant.position.y - food.position.y), 2);
+						var hypothenuse = Math.sqrt(squareX + squareY);
+						var distance = hypothenuse - ant.action_area - food.smell;
 
-					if (distance <= 0) {
-						ant.mapInfo.foods[food.id] = {
-							creationDate : new Date().getTime(),
-							food 		 : food.food,
-							position 	 : food.position
+						if (distance <= 0) {
+							ant.update_food_info(food);
+							if(ant.status.task.label == 'searching_food'){
+								console.log(ant.id + ' found food!');
+								ant.callback();
+							}
 						}
 
-						if(ant.status.task == 'searching_food'){
-							console.log('Ant found food');
-							delete ant.search_angle;
-							delete ant.callback;
-							ant.status.task == 'go_home';
-							ant.go_home();
-							// ant.stop();
-						}
+
 					}
 				}
 			}
@@ -191,9 +188,9 @@ function Anthill(){
     		_food.creationDate = new Date();
     		_food.id = '_' + new Date().getTime();
     		_food.food = 1000;
-    		_food.radius = 6;
-    		_food.smell = 25;
-    		_food.smell_color = 'rgba(0,200,0,0.3)';
+    		_food.radius = 5;
+    		_food.smell = 45;
+    		_food.smell_color = 'rgba(0,200,0,0.1)';
     		_food.color = 'rgba(0,200,0,1)';
     		_food.position = {
     			x: x,
@@ -217,14 +214,16 @@ function Anthill(){
 				trashes	: {},
 				dumps	: {}
 			};
-			_ant.items = {};
+			_ant.items = {
+				food 	: 0
+			};
 			_ant.gender = getRandom(0,1);
 			_ant.position = {
 				x : _hill.position.x,
 				y : _hill.position.y
 			}
 			_ant.color = _hill.global.ant_color;
-			_ant.radius = 4.5;
+			_ant.radius = 3;
 			_ant.action_area = 30;
 			_ant.action_color = _hill.global.ant_action_color;
 
@@ -237,7 +236,8 @@ function Anthill(){
 			_ant.status = {
 				sleep 		: 0,
 				hungry 		: 0,
-				busy		: 0
+				busy		: 0,
+				task		: {}
 			}
 
 			_hill.canvas.circle(_hill.global.x, _hill.global.y, _hill.radius);
@@ -247,49 +247,142 @@ function Anthill(){
 			_hill.update();
 		}
 
+
+		this.update_food_info = function(food){
+			_ant.mapInfo.foods[food.id] = {
+				creationDate : new Date().getTime(),
+				food 		 : food.food,
+				position 	 : food.position
+			}
+		}
+
+		this.teste = function(){
+			_ant.go(100,100);
+			_ant.callback = _ant.teste2;
+		}
+		this.teste2 = function(){
+			_ant.go(200,100);
+			_ant.callback = _ant.teste;
+		}
+
+		this.get_food = function(){
+			_ant.status.busy = 1;
+			_ant.status.task.label = 'getting_food';
+			_ant.callback = _ant.get_food;
+			// console.log('callback')
+			// console.log(_ant.callback)
+
+			console.log(_ant.id + ' get_food()');
+			// return;
+
+
+			if(objSize(_ant.mapInfo.foods) <= 0){
+				console.log(_ant.id + ' dont know any food source.');
+				_ant.search_food();
+				return;
+			}
+
+			if(_ant.items.food <= 0){ 
+				console.log(_ant.id + ' is going to get food');
+				/* Ant is not carring food */
+
+				/* Search one source of food */
+				for (var i in _ant.mapInfo.foods){
+					console.log('food loop')
+					var food = _hill.foods[i];
+
+					/* This source have food? */
+					if(food.food > 0){
+						if(_ant.position.x == food.position.x && _ant.position.y == food.position.y){
+							console.log(_ant.id + ' is in the food source');
+							// /* 
+							// Ant is in this source, get food to take to the anthill
+							// */
+							
+							getFood = (food.food > 10) ? 10 : food.food;
+							_ant.items.food = getFood;
+							food.food -= getFood;
+							_ant.go_home();
+							_ant.callback = _ant.get_food;
+							
+						}else{
+							console.log(_ant.id + ' is going to food source '+ i);
+							// _ant.callback = _ant.get_food;
+							// console.log(_ant.callback)
+
+							_ant.go(food.position.x,food.position.y);
+							// return
+							// _ant.callback = _ant.get_food;
+						}
+						break;
+					}
+					// break;
+				}
+			}else{
+				if(_ant.position.x == _hill.position.x && _ant.position.y == _hill.position.y){
+					_hill.status.food += _ant.items.food;
+					_ant.items.food = 0;
+					_hill.update();
+					_ant.get_food();
+				}else{
+					_ant.callback = _ant.get_food;
+					_ant.go_home();
+				}
+			}
+		}
+
 		/* Search food in map */
 		this.search_food = function(){
+			console.log(_ant.id + ' search_food()')
 			/*
 				Ant move "randomly" in one direction  find food
 			*/
 
 			// console.log(_ant.id + ' searching food');
 			_ant.status.busy = 1;
-			_ant.status.task = 'searching_food';
+			_ant.status.task.label = 'searching_food';
+
+			if(objSize(_ant.mapInfo.foods) > 0){
+				console.log(_ant.id + ' know were food is')
+				_ant.stop();
+				_ant.callback = null;
+				_ant.get_food();
+				
+				return;
+			}
 
 
-			if(_ant.status.search_angle == undefined){
+			if(_ant.status.task.angle == undefined){
 				/* Ant "choose" one direction to go (360° angle) */
-				console.log('redefine angle');
 				console.log(_ant.id + ' searching food');
-				_ant.status.search_angle = getRandom(0,360);
+				_ant.status.task.angle = getRandom(0,360);
 				_ant.status.search_counter = 0;
 			}
 
 			/* only move into canvas */
 			if(_ant.position.x < 0){
 				console.log('x < 0')
-				_ant.status.search_angle = getRandom(45,135);
-				console.log(_ant.status.search_angle);
+				_ant.status.task.angle = getRandom(45,135);
+				console.log(_ant.status.task.angle);
 			}else if(_ant.position.x > _hill.global.width){
 				console.log('x > w')
-				_ant.status.search_angle = getRandom(225,315);
-				console.log(_ant.status.search_angle);
+				_ant.status.task.angle = getRandom(225,315);
+				console.log(_ant.status.task.angle);
 			}else if(_ant.position.y < 0){
 				console.log('y < 0')
-				_ant.status.search_angle = getRandom(135,225);
-				console.log(_ant.status.search_angle);
+				_ant.status.task.angle = getRandom(135,225);
+				console.log(_ant.status.task.angle);
 			}else if(_ant.position.y > _hill.global.height){
 				console.log('y > h')
 				if(getRandom(0,1) == 1){
-					_ant.status.search_angle = getRandom(0,89);	
+					_ant.status.task.angle = getRandom(0,89);	
 				}else{
-					_ant.status.search_angle = 315;
+					_ant.status.task.angle = 315;
 				}
-				console.log(_ant.status.search_angle);
+				console.log(_ant.status.task.angle);
 			}
 
-			var angle = _ant.status.search_angle;
+			var angle = _ant.status.task.angle;
 
 
 
@@ -335,6 +428,7 @@ function Anthill(){
 		/* Stop moving */
 		this.stop = function(){
 			_ant.next_position = undefined;
+			// delete _ant.callback;
 		}
 
 		this.eat = function(){
@@ -386,7 +480,7 @@ function Anthill(){
 				_ant.die();
 			}else if(_ant.status.hungry > 25){
 				_ant.status.busy = 1;
-				_ant.status.task = 'eating';
+				_ant.status.task.label = 'eating';
 				_ant.go_home();
 				_ant.callback = function(){
 					_ant.callback = undefined;
@@ -424,17 +518,38 @@ $(document).ready(function(){
 	hill.create();
 
 	/* Create food */
-	food = new hill.Food()
-	food.create(100,100)
+	function createFood(){
+		food = new hill.Food()
+		food.create(getRandom(0,hill.global.width),getRandom(0,hill.global.height))
+	}
+
+	createFood();
+
+	// food = new hill.Food()
+	// food.create(getRandom(0,hill.global.width),getRandom(0,hill.global.height))
 
 	/* Get ant and send to search food */
-	f = hill.get_idle_ant()
-	// f.search();
+
+	function createAnt(){
+		f = new hill.Ant();
+		f.create();
+		f.search_food();
+	}
+
+	createAnt();
+	createFood();
+	setTimeout(createAnt, 500);
+	setTimeout(createAnt, 950);
+	setTimeout(createAnt, 1500);
+	setTimeout(createAnt, 2900);
+	setTimeout(createAnt, 3900);
+	setTimeout(createAnt, 5300);
+
 	// f.go(200,150);
 	// f.eat();
 	// f.status.hungry
 
-	// var f2 = hill.Ant();
+	// var f2 = new hill.Ant();
 	// f2.create();
 	// f2.search_food();
 })
