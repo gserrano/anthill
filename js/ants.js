@@ -1,22 +1,15 @@
-function objSize(obj) {
-  var len = obj.length ? --obj.length : 0;
-    for (var k in obj)
-      len++;
-  return len;
-}
-
 /*
 	Anthill
 */
 function Anthill(){
 	var _hill = this;
-	var element = $("#canvas");
+	var element = document.getElementById('canvas');
 
 	this.global = {
 		timer_sleep 	: 7000,
 		timer_hungry 	: 7000,
-		width			: element.width(),
-		height			: element.height(),
+		width			: element.offsetWidth,
+		height			: element.offsetHeight,
 		hill_radius		: 8,
 		hill_color		: 'rgba(200,20,20,1)',
 		ant_color		: 'rgba(60,10,10,1)',
@@ -24,7 +17,7 @@ function Anthill(){
 		timer 			: 20
 	}
 
-	this.ctx = element[0].getContext("2d");
+	this.ctx = element.getContext("2d");
 
 	this.status = {
 		population : 0,
@@ -48,8 +41,8 @@ function Anthill(){
 	}
 
 	this.update = function(){
-		$('#food').html(_hill.status.food);
-		$('#ants').html(_hill.status.population);
+		document.getElementById('food').innerHTML = _hill.status.food;
+		document.getElementById('ants').innerHTML = _hill.status.population;
 	}
 
     this.get_idle_ant = function(){
@@ -509,47 +502,10 @@ function Anthill(){
 function getRandom(from,to){
     return Math.floor(Math.random()*(to-from+1)+from);
 }
-var hill,
-	food,
-	f;
-$(document).ready(function(){
-	/* Create hill */
-	hill = new Anthill();
-	hill.create();
 
-	/* Create food */
-	function createFood(){
-		food = new hill.Food()
-		food.create(getRandom(0,hill.global.width),getRandom(0,hill.global.height))
-	}
-
-	createFood();
-
-	// food = new hill.Food()
-	// food.create(getRandom(0,hill.global.width),getRandom(0,hill.global.height))
-
-	/* Get ant and send to search food */
-
-	function createAnt(){
-		f = new hill.Ant();
-		f.create();
-		f.search_food();
-	}
-
-	createAnt();
-	createFood();
-	setTimeout(createAnt, 500);
-	setTimeout(createAnt, 950);
-	setTimeout(createAnt, 1500);
-	setTimeout(createAnt, 2900);
-	setTimeout(createAnt, 3900);
-	setTimeout(createAnt, 5300);
-
-	// f.go(200,150);
-	// f.eat();
-	// f.status.hungry
-
-	// var f2 = new hill.Ant();
-	// f2.create();
-	// f2.search_food();
-})
+function objSize(obj) {
+  var len = obj.length ? --obj.length : 0;
+    for (var k in obj)
+      len++;
+  return len;
+}
