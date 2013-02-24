@@ -91,9 +91,7 @@ function Anthill(){
 
 				if(ant.next_position.x == ant.position.x && ant.next_position.y == ant.position.y){
 					ant.next_position = undefined;
-					if(typeof(ant.callback) == 'function'){
-						ant.callback();
-					}
+					ant.callback();
 				}else{
 
 					/* 
@@ -137,6 +135,9 @@ function Anthill(){
 							ant.update_food_info(food);
 							if(ant.status.task.label == 'searching_food'){
 								console.log(ant.id + ' found food!');
+								if(ant.status.task.route){
+									delete ant.status.task.route;
+								}
 								ant.callback();
 							}
 						}
@@ -158,6 +159,8 @@ function Anthill(){
 							}
 						}
 					}
+
+					// ant.callback();
 				}
 			}
 			
@@ -256,47 +259,100 @@ function Anthill(){
 				task		: {}
 			}
 
-			_hill.canvas.circle(_hill.global.x, _hill.global.y, _hill.radius);
-			_hill.ants[_ant.id] = this;
+			_ant.list_actions = [];
 
+			_hill.ants[_ant.id] = this;
 			_hill.status.population += 1;
 			_hill.update();
 		}
 
+		/* 
+			Read _ant.list_actions array [[console.log(), param1], [alert(), b]]
+			execute the first action and shift _ant.list_actions
+
+		*/ 
+		this.callback = function(){
+			if(_ant.list_actions.length > 0){
+				var next_action = _ant.list_actions.shift();
+				if(typeof next_action == 'function'){
+					next_action();
+				}else if(typeof next_action == 'object'){
+					var strToEval = 'next_action[0](';
+
+					for (var i=1; i<next_action.length; i++) {
+						if(i == (next_action.length-1)){
+							strToEval += 'next_action['+i+']';
+						}else{
+							strToEval += 'next_action['+i+'],';
+						}
+						
+					}
+					strToEval += ');';
+					eval(strToEval);
+				}
+
+			}
+		}
 
 		this.update_food_info = function(food){
-			_ant.mapInfo.foods[food.id] = {
-				creationDate : new Date().getTime(),
-				food 		 : food.food,
-				position 	 : food.position
+			// console.log('update_food_info');
+			// console.log(_ant.task);
+			if(!_ant.mapInfo.foods[food.id]){
+				_ant.mapInfo.foods[food.id] = {
+					position 	: food.position
+				}
+			}
+
+			_ant.mapInfo.foods[food.id].updateDate 	= new Date().getTime();
+			_ant.mapInfo.foods[food.id].food 			= food.food;
+			
+			if(_ant.status.task && _ant.status.task.label == 'searching_food' && _ant.status.task.route){
+				_ant.status.task.route.unshift([_hill.position.x, _hill.position.y]);
+				_ant.status.task.route.push([food.position.x, food.position.y]);
+				_ant.mapInfo.foods[food.id].route = _ant.status.task.route;
 			}
 		}
 
 		/* Synchronize ant information */
 		this.communicate = function(ant2){
-			console.log('communicate()')
+			// console.log('communicate()');
+
 			for (var i in ant2.mapInfo.foods){
 				if(_ant.mapInfo.foods[i]){
-					if(ant2.mapInfo.foods[i] > _ant.mapInfo.foods[i]){
-						_ant.mapInfo.foods[i] = ant2.mapInfo.foods[i];
-						console.log(_ant.id + ' get info about food')
+					if(ant2.mapInfo.foods[i].route.length < _ant.mapInfo.foods[i].route.length){
+						_ant.mapInfo.foods[i].route = ant2.mapInfo.foods[i].route;
 					}
+					// if(ant2.mapInfo.foods[i].updateDate > _ant.mapInfo.foods[i].updateDate){
+					// 	_ant.mapInfo.foods[i] = ant2.mapInfo.foods[i];
+					// 	console.log(_ant.id + ' get info about food')
+					// }
 				}else{
 					_ant.mapInfo.foods[i] = ant2.mapInfo.foods[i];
 				}
 			}
 		}
 
+		/* 
+			arg "route" : array of positions [a,b], [c,d], [d,f]]
+			_ant.status.task.route = object to save route positions
+			_ant.status.task.route.callback: callback called at the end of route
+		*/
+		this.follow_route = function(route){
+
+			for (var i in route){
+				var position = route[i];
+				// console.log(position);
+
+				_ant.list_actions.push([_ant.go, position[0], position[1]]);
+			}
+
+		}
+
 		this.get_food = function(){
 			_ant.status.busy = 1;
 			_ant.status.task.label = 'getting_food';
-			_ant.callback = _ant.get_food;
-			// console.log('callback')
-			// console.log(_ant.callback)
 
 			console.log(_ant.id + ' get_food()');
-			// return;
-
 
 			if(objSize(_ant.mapInfo.foods) <= 0){
 				console.log(_ant.id + ' dont know any food source.');
@@ -317,25 +373,22 @@ function Anthill(){
 					if(food.food > 0){
 						if(_ant.position.x == food.position.x && _ant.position.y == food.position.y){
 							console.log(_ant.id + ' is in the food source');
-							// /* 
-							// Ant is in this source, get food to take to the anthill
-							// */
+							/* 
+							Ant is in this food source, get food to take to the anthill
+							*/
 							
 							getFood = (food.food > 10) ? 10 : food.food;
 							_ant.items.food = getFood;
 							food.food -= getFood;
-							_ant.go_home();
-							_ant.callback = _ant.get_food;
-							
+							// console.log(_ant.mapInfo.foods[i].route);
+							_ant.follow_route(_ant.mapInfo.foods[i].route.reverse());
 						}else{
 							console.log(_ant.id + ' is going to food source '+ i);
-							// _ant.callback = _ant.get_food;
-							// console.log(_ant.callback)
-
-							_ant.go(food.position.x,food.position.y);
-							// return
-							// _ant.callback = _ant.get_food;
+							
+							_ant.follow_route(_ant.mapInfo.foods[i].route.reverse());
 						}
+						_ant.list_actions.push(_ant.get_food);
+						_ant.callback();
 						break;
 					}
 					// break;
@@ -347,7 +400,7 @@ function Anthill(){
 					_hill.update();
 					_ant.get_food();
 				}else{
-					_ant.callback = _ant.get_food;
+					console.log('go home');
 					_ant.go_home();
 				}
 			}
@@ -355,21 +408,17 @@ function Anthill(){
 
 		/* Search food in map */
 		this.search_food = function(){
-			// console.log(_ant.id + ' search_food()')
 			/*
 				Ant move "randomly" in one direction  find food
 			*/
-
-			// console.log(_ant.id + ' searching food');
 			_ant.status.busy = 1;
 			_ant.status.task.label = 'searching_food';
 
 			if(objSize(_ant.mapInfo.foods) > 0){
+				// console.log(_ant.status.task.route);
 				console.log(_ant.id + ' know were food is')
 				_ant.stop();
-				_ant.callback = null;
 				_ant.get_food();
-				
 				return;
 			}
 
@@ -378,6 +427,7 @@ function Anthill(){
 				/* Ant "choose" one direction to go (360° angle) */
 				console.log(_ant.id + ' searching food');
 				_ant.status.task.angle = getRandom(0,360);
+				_ant.status.task.route = [];
 				_ant.status.search_counter = 0;
 			}
 
@@ -443,8 +493,11 @@ function Anthill(){
 			}
 			
 			// var goy = _ant.position.y;
+			_ant.status.task.route.push([gox, goy]);
+			// console.log(_ant.status.task.route)
 			_ant.go(gox, goy);
-			_ant.callback = _ant.search_food;
+			_ant.list_actions.push(_ant.search_food);
+
 		}
 
 		/* Stop moving */

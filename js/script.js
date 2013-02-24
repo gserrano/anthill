@@ -25,6 +25,7 @@ function createAnt(){
 	f.search_food();
 }
 
+
 createAnt();
 createFood();
 setTimeout(createAnt, 500);
