@@ -580,6 +580,43 @@ function Anthill(){
 		// },_ant.lifetime);
 		
 	}
+
+
+
+	element.onclick  = function(e){
+		var mouseX = window.event.clientX,
+			mouseY = window.event.clientY,
+			menu = document.getElementById('action-menu'),
+			add_food = document.getElementById('add_food');
+
+	    if(e.offsetX) {
+	        canvasX = e.offsetX;
+	        canvasY = e.offsetY;
+	    }
+	    else if(e.layerX) {
+	        canvasX = e.layerX;
+	        canvasY = e.layerY;
+	    }
+
+	    menu.style.top = mouseY+'px';
+	    menu.style.left = mouseX+'px';
+	    menu.style.display = 'block';
+
+	    add_food.onclick = function(){
+		    var food = new _hill.Food();
+		    food.create(canvasX, canvasY);
+	    }
+	    
+	    menu.onclick = function(){
+	    	 menu.style.display = 'none'
+	    }
+
+
+	    // var food = new _hill.Food();
+	    // food.create(mouseX, mouseY);
+	}
+
+
 }
 
 
@@ -593,3 +630,4 @@ function objSize(obj) {
       len++;
   return len;
 }
+
