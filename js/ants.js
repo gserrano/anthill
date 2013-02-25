@@ -310,6 +310,7 @@ function Anthill(){
 				_ant.status.task.route.unshift([_hill.position.x, _hill.position.y]);
 				_ant.status.task.route.push([food.position.x, food.position.y]);
 				_ant.mapInfo.foods[food.id].route = _ant.status.task.route;
+				_ant.mapInfo.foods[food.id].reverse_route = _ant.status.task.route.slice().reverse();
 			}
 		}
 
@@ -352,7 +353,7 @@ function Anthill(){
 			_ant.status.busy = 1;
 			_ant.status.task.label = 'getting_food';
 
-			console.log(_ant.id + ' get_food()');
+			// console.log(_ant.id + ' get_food()');
 
 			if(objSize(_ant.mapInfo.foods) <= 0){
 				console.log(_ant.id + ' dont know any food source.');
@@ -365,14 +366,14 @@ function Anthill(){
 				/* Ant is not carring food */
 
 				/* Search one source of food */
+				// console.log(_ant.mapInfo.foods);
 				for (var i in _ant.mapInfo.foods){
-					console.log('food loop')
 					var food = _hill.foods[i];
 
 					/* This source have food? */
 					if(food.food > 0){
 						if(_ant.position.x == food.position.x && _ant.position.y == food.position.y){
-							console.log(_ant.id + ' is in the food source');
+							console.log(_ant.id + ' get +10 food');
 							/* 
 							Ant is in this food source, get food to take to the anthill
 							*/
@@ -381,11 +382,11 @@ function Anthill(){
 							_ant.items.food = getFood;
 							food.food -= getFood;
 							// console.log(_ant.mapInfo.foods[i].route);
-							_ant.follow_route(_ant.mapInfo.foods[i].route.reverse());
+							_ant.follow_route(_ant.mapInfo.foods[i].reverse_route);
 						}else{
 							console.log(_ant.id + ' is going to food source '+ i);
 							
-							_ant.follow_route(_ant.mapInfo.foods[i].route.reverse());
+							_ant.follow_route(_ant.mapInfo.foods[i].route);
 						}
 						_ant.list_actions.push(_ant.get_food);
 						_ant.callback();
@@ -395,6 +396,7 @@ function Anthill(){
 				}
 			}else{
 				if(_ant.position.x == _hill.position.x && _ant.position.y == _hill.position.y){
+					console.log(_ant.id + ' leave +10 food in anthill');
 					_hill.status.food += _ant.items.food;
 					_ant.items.food = 0;
 					_hill.update();

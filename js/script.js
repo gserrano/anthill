@@ -14,6 +14,7 @@ hill.create();
 function createFood(){
 	food = new hill.Food()
 	food.create(getRandom(0,hill.global.width),getRandom(0,hill.global.height))
+	// food.create(130,50)
 }
 
 createFood();
@@ -28,9 +29,9 @@ function createAnt(){
 
 createAnt();
 createFood();
-setTimeout(createAnt, 500);
-setTimeout(createAnt, 950);
+// setTimeout(createAnt, 500);
+// setTimeout(createAnt, 950);
 setTimeout(createAnt, 1500);
-setTimeout(createAnt, 2900);
+// setTimeout(createAnt, 2900);
 setTimeout(createAnt, 3900);
 setTimeout(createAnt, 5300);
