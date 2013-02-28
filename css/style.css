@@ -13,4 +13,6 @@ body{
   background:rgba(30,150,30,0.1);
   margin: 0 auto;
   border: 1px solid #333;
+  width: 1150px;
+  height: 600px;
 }
