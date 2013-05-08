@@ -1,0 +1,16 @@
+{
+  "name": "anthill",
+  "title": "Ant Hill",
+  "description": "Anthill is an experimental project to build an ants \"ecosystem\" with a bottom-up community.",
+  "version": "0.0.1",
+  "homepage": "https://github.com/gserrano/anthill",
+  "author": {
+    "name": "Guilherme Serrano",
+    "email": "contato@guilhermeserrano.com.br",
+    "url": "guilhermeserrano.com.br"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.1",
+    "grunt-contrib": "~0.1.1"
+  }
+}

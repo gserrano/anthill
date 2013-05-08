@@ -14,23 +14,24 @@ function Anthill(){
 	var element = document.getElementById('canvas');
 
 	this.global = {
-		timer_sleep 	: 7000,
-		timer_hungry 	: 5000,
+		timer_sleep		: 7000,
+		timer_hungry	: 5000,
 		width			: element.offsetWidth,
 		height			: element.offsetHeight,
 		hill_radius		: 8,
 		hill_color		: 'rgba(200,20,20,1)',
 		ant_color		: 'rgba(60,10,10,1)',
 		ant_action_color: 'rgba(240,20,20,0.01)',
-		timer 			: 18
-	}
+		timer			: 18
+	};
 
 	this.ctx = element.getContext("2d");
 
 	this.status = {
 		population : 0,
 		food : 50
-	}
+	};
+
 	this.ants = {};
 	this.foods = {};
 	this.pheromones = {};
@@ -44,69 +45,75 @@ function Anthill(){
 		_hill.position = {
 			x : x,
 			y : y
-		}
+		};
 
 		_hill.update();
-	}
+	};
 
 	this.update = function(){
 		document.getElementById('food').innerHTML = _hill.status.food;
 		document.getElementById('ants').innerHTML = objSize(_hill.ants);
-	}
+	};
 
-    this.get_idle_ant = function(){
+	this.get_idle_ant = function(){
 		for (var i in _hill.ants){
 			var ant = _hill.ants[i];
-			if(ant.status.busy != 1){
+			if(ant.status.busy !== 1){
 				return ant;
 			}
 		}
-    }
+	};
 
-    var animate = function(){
-    	_hill.canvas.clear();
+	var animate = function(){
+		_hill.canvas.clear();
 
-    	/* Anthill */
-    	_hill.canvas.circle(_hill.position.x, _hill.position.y, _hill.global.hill_radius, _hill.global.hill_color);
+		var	food,
+			to_move_x,
+			to_move_y,
+			pixels,
+			line,
+			squareX,
+			squareY,
+			hypothenuse,
+			distance;
 
-    	/* Foods */
+		/* Anthill */
+		_hill.canvas.circle(_hill.position.x, _hill.position.y, _hill.global.hill_radius, _hill.global.hill_color);
+
+		/* Foods */
 		for (var i in _hill.foods){
-			var food = _hill.foods[i];
+			food = _hill.foods[i];
 			_hill.canvas.circle(food.position.x, food.position.y, food.radius, food.color);
 			_hill.canvas.circle(food.position.x, food.position.y, food.smell, food.smell_color);
 		}
 
 		/* Pheromones */
-		for (var i in _hill.pheromones){
+		for (i in _hill.pheromones){
 			var pheromone = _hill.pheromones[i];
 
-		    _hill.ctx.beginPath();
-		    _hill.ctx.lineJoin = 'round';
-		    _hill.ctx.strokeStyle = 'rgba(25,25,25,0.1)';
-		    _hill.ctx.moveTo(pheromone.route[0][0],pheromone.route[0][1]);
+			_hill.ctx.beginPath();
+			_hill.ctx.lineJoin = 'round';
+			_hill.ctx.strokeStyle = 'rgba(25,25,25,0.1)';
+			_hill.ctx.moveTo(pheromone.route[0][0],pheromone.route[0][1]);
 			for (var j in pheromone.route){
 				var position = pheromone.route[j];
 				_hill.ctx.lineTo(position[0], position[1]);
 			}
-		    // _hill.ctx.closePath();
-		    _hill.ctx.stroke();
+			// _hill.ctx.closePath();
+			_hill.ctx.stroke();
 		}
 
 
-    	/* Ants */
-		for (var i in _hill.ants){
-			var ant = _hill.ants[i],
-				to_move_x,
-				to_move_y,
-				line;
-
+		/* Ants */
+		for (i in _hill.ants){
+			ant = _hill.ants[i];
 
 			if(ant.next_position !== undefined){
-				var	to_move_x = ant.next_position.x - ant.position.x,
-					to_move_y = ant.next_position.y - ant.position.y,
-					pixels = 0;
+				to_move_x = ant.next_position.x - ant.position.x;
+				to_move_y = ant.next_position.y - ant.position.y;
+				pixels = 0;
 
-				if(ant.next_position.x == ant.position.x && ant.next_position.y == ant.position.y){
+				if(ant.next_position.x === ant.position.x && ant.next_position.y === ant.position.y){
 					ant.next_position = undefined;
 					ant.callback();
 				}else{
@@ -140,17 +147,17 @@ function Anthill(){
 					}
 
 					/* Food colision */
-					for (var i in _hill.foods){
-						var food = _hill.foods[i];
+					for(i in _hill.foods){
+						food = _hill.foods[i];
 
-						var squareX = Math.pow(Math.abs(ant.position.x - food.position.x), 2);
-						var squareY = Math.pow(Math.abs(ant.position.y - food.position.y), 2);
-						var hypothenuse = Math.sqrt(squareX + squareY);
-						var distance = hypothenuse - ant.action_area - food.smell;
+						squareX = Math.pow(Math.abs(ant.position.x - food.position.x), 2);
+						squareY = Math.pow(Math.abs(ant.position.y - food.position.y), 2);
+						hypothenuse = Math.sqrt(squareX + squareY);
+						distance = hypothenuse - ant.action_area - food.smell;
 
 						if (distance <= 0) {
 							ant.update_food_info(food);
-							if(ant.status.task.label == 'searching_food'){
+							if(ant.status.task.label === 'searching_food'){
 								if(ant.status.task.route){
 									delete ant.status.task.route;
 								}
@@ -160,15 +167,15 @@ function Anthill(){
 					}
 
 					/* Ants colision */
-					for (var i in _hill.ants){
+					for (i in _hill.ants){
 						var ant2 = _hill.ants[i];
 
 						/* self collision doesn't exist */
-						if(ant.id != ant2.id){
-							var squareX = Math.pow(Math.abs(ant.position.x - ant2.position.x), 2);
-							var squareY = Math.pow(Math.abs(ant.position.y - ant2.position.y), 2);
-							var hypothenuse = Math.sqrt(squareX + squareY);
-							var distance = hypothenuse - ant.action_area - ant2.action_area;
+						if(ant.id !== ant2.id){
+							squareX = Math.pow(Math.abs(ant.position.x - ant2.position.x), 2);
+							squareY = Math.pow(Math.abs(ant.position.y - ant2.position.y), 2);
+							hypothenuse = Math.sqrt(squareX + squareY);
+							distance = hypothenuse - ant.action_area - ant2.action_area;
 
 							if (distance <= 0) {
 								ant.communicate(ant2);
@@ -183,59 +190,59 @@ function Anthill(){
 			_hill.canvas.circle(ant.position.x, ant.position.y, ant.action_area, ant.action_color);
 			_hill.canvas.circle(ant.position.x, ant.position.y, ant.radius, ant.color);
 		}
-    }
+	};
 
-    this.turn = setInterval(animate, _hill.global.timer);
+	this.turn = setInterval(animate, _hill.global.timer);
 
-    /* Canvas */
-    this.canvas = {};
-    this.canvas.circle = function(x,y,r,color){
-    	if(color == undefined){
-    		color = "rgba(0,0,255,1)";
-    	}
+	/* Canvas */
+	this.canvas = {};
+	this.canvas.circle = function(x,y,r,color){
+		if(color === undefined){
+			color = "rgba(0,0,255,1)";
+		}
 
-        _hill.ctx.fillStyle = color;
-        _hill.ctx.beginPath();
-        _hill.ctx.arc(x, y, r, 0, Math.PI*2, true);
-        _hill.ctx.closePath();
-        _hill.ctx.fill();
-    }
+		_hill.ctx.fillStyle = color;
+		_hill.ctx.beginPath();
+		_hill.ctx.arc(x, y, r, 0, Math.PI*2, true);
+		_hill.ctx.closePath();
+		_hill.ctx.fill();
+	};
 
-    this.canvas.rect = function(x,y,w,h,color){
-    	if(color == undefined){
-    		color = "rgba(0,0,0,1)";
-    	}
-        _hill.ctx.fillStyle = color;
-        _hill.ctx.beginPath();
-        _hill.ctx.rect(x,y,w,h);
-        _hill.ctx.closePath();
-        _hill.ctx.fill();
-    }
-    
-    this.canvas.clear = function(){
-        _hill.ctx.clearRect(0, 0, _hill.global.width,_hill.global.height);
-    }
+	this.canvas.rect = function(x,y,w,h,color){
+		if(color === undefined){
+			color = "rgba(0,0,0,1)";
+		}
+		_hill.ctx.fillStyle = color;
+		_hill.ctx.beginPath();
+		_hill.ctx.rect(x,y,w,h);
+		_hill.ctx.closePath();
+		_hill.ctx.fill();
+	};
+	
+	this.canvas.clear = function(){
+		_hill.ctx.clearRect(0, 0, _hill.global.width,_hill.global.height);
+	};
 
-    this.Food = function(){
-    	var _food = this;
+	this.Food = function(){
+		var _food = this;
 
-    	this.create = function(x, y){
-    		_food.creationDate = new Date();
-    		_food.id = '_' + new Date().getTime();
-    		_food.food = 1000;
-    		_food.radius = 5;
-    		_food.smell = 45;
-    		_food.smell_color = 'rgba(0,200,0,0.05)';
-    		_food.color = 'rgba(0,200,0,1)';
-    		_food.position = {
-    			x: x,
-    			y: y
-    		}
+		this.create = function(x, y){
+			_food.creationDate = new Date();
+			_food.id = '_' + new Date().getTime();
+			_food.food = 1000;
+			_food.radius = 5;
+			_food.smell = 45;
+			_food.smell_color = 'rgba(0,200,0,0.05)';
+			_food.color = 'rgba(0,200,0,1)';
+			_food.position = {
+				x: x,
+				y: y
+			};
 			_hill.canvas.circle(x, y, _food.radius, _food.color);
 			_hill.canvas.circle(x, y, _food.smeel, _food.smell_color);
 			_hill.foods[_food.id] = this;
-    	}
-    }
+		};
+	};
 
 	this.Ant = function(){
 		var _ant = this;
@@ -245,18 +252,18 @@ function Anthill(){
 			_ant.id = '_' + new Date().getTime();
 			_ant.speed = 0.8;
 			_ant.mapInfo = {
-				foods 	: {},
+				foods	: {},
 				trashes	: {},
 				dumps	: {}
 			};
 			_ant.items = {
-				food 	: 0
+				food	: 0
 			};
 			_ant.gender = getRandom(0,1);
 			_ant.position = {
 				x : _hill.position.x,
 				y : _hill.position.y
-			}
+			};
 			_ant.color = _hill.global.ant_color;
 			_ant.radius = 2;
 			_ant.action_area = 30;
@@ -269,18 +276,18 @@ function Anthill(){
 			}
 			
 			_ant.status = {
-				sleep 		: 0,
-				hungry 		: getRandom(0,10),
+				sleep		: 0,
+				hungry		: getRandom(0,10),
 				busy		: 0,
 				task		: {}
-			}
+			};
 
 			_ant.list_actions = [];
 
 			_hill.ants[_ant.id] = this;
 			_hill.status.population += 1;
 			_hill.update();
-		}
+		};
 
 		/* 
 			Read _ant.list_actions array [[console.log(), param1], [alert(), b]]
@@ -290,13 +297,13 @@ function Anthill(){
 		this.callback = function(){
 			if(_ant.list_actions.length > 0){
 				var next_action = _ant.list_actions.shift();
-				if(typeof next_action == 'function'){
+				if(typeof next_action === 'function'){
 					next_action();
-				}else if(typeof next_action == 'object'){
+				}else if(typeof next_action === 'object'){
 					var strToEval = 'next_action[0](';
 
 					for (var i=1; i<next_action.length; i++) {
-						if(i == (next_action.length-1)){
+						if(i === (next_action.length-1)){
 							strToEval += 'next_action['+i+']';
 						}else{
 							strToEval += 'next_action['+i+'],';
@@ -306,23 +313,22 @@ function Anthill(){
 					strToEval += ');';
 					eval(strToEval);
 				}
-
 			}
-		}
+		};
 
 		this.update_food_info = function(food){
 			// console.log('update_food_info');
 			// console.log(_ant.task);
 			if(!_ant.mapInfo.foods[food.id]){
 				_ant.mapInfo.foods[food.id] = {
-					position 	: food.position
-				}
+					position	: food.position
+				};
 			}
 
-			_ant.mapInfo.foods[food.id].updateDate 	= new Date().getTime();
-			_ant.mapInfo.foods[food.id].food 			= food.food;
-			
-			if(_ant.status.task && _ant.status.task.label == 'searching_food' && _ant.status.task.route){
+			_ant.mapInfo.foods[food.id].updateDate		= new Date().getTime();
+			_ant.mapInfo.foods[food.id].food			= food.food;
+
+			if(_ant.status.task && _ant.status.task.label === 'searching_food' && _ant.status.task.route){
 				_ant.status.task.route.unshift([_hill.position.x, _hill.position.y]);
 				_ant.status.task.route.push([food.position.x, food.position.y]);
 				_ant.mapInfo.foods[food.id].route = _ant.status.task.route;
@@ -332,7 +338,7 @@ function Anthill(){
 					route : _ant.status.task.route.slice()
 				};
 			}
-		}
+		};
 
 		/* Synchronize ant information */
 		this.communicate = function(ant2){
@@ -343,15 +349,15 @@ function Anthill(){
 					if(ant2.mapInfo.foods[i].route.length < _ant.mapInfo.foods[i].route.length){
 						_ant.mapInfo.foods[i].route = ant2.mapInfo.foods[i].route;
 					}
-					// if(ant2.mapInfo.foods[i].updateDate > _ant.mapInfo.foods[i].updateDate){
-					// 	_ant.mapInfo.foods[i] = ant2.mapInfo.foods[i];
-					// 	console.log(_ant.id + ' get info about food')
-					// }
+					//if(ant2.mapInfo.foods[i].updateDate > _ant.mapInfo.foods[i].updateDate){
+					//	_ant.mapInfo.foods[i] = ant2.mapInfo.foods[i];
+					//	console.log(_ant.id + ' get info about food')
+					//}
 				}else{
 					_ant.mapInfo.foods[i] = ant2.mapInfo.foods[i];
 				}
 			}
-		}
+		};
 
 		/* 
 			arg "route" : array of positions [a,b], [c,d], [d,f]]
@@ -367,7 +373,7 @@ function Anthill(){
 				_ant.list_actions.push([_ant.go, position[0], position[1]]);
 			}
 
-		}
+		};
 
 		this.get_food = function(){
 			_ant.status.busy = 1;
@@ -392,7 +398,7 @@ function Anthill(){
 
 					/* This source have food? */
 					if(food.food > 0){
-						if(_ant.position.x == food.position.x && _ant.position.y == food.position.y){
+						if(_ant.position.x === food.position.x && _ant.position.y === food.position.y){
 							// console.log(_ant.id + ' get +10 food');
 							/* 
 							Ant is in this food source, get food to take to the anthill
@@ -415,7 +421,7 @@ function Anthill(){
 					// break;
 				}
 			}else{
-				if(_ant.position.x == _hill.position.x && _ant.position.y == _hill.position.y){
+				if(_ant.position.x === _hill.position.x && _ant.position.y === _hill.position.y){
 					// console.log(_ant.id + ' leave +10 food in anthill');
 					_hill.status.food += _ant.items.food;
 					_ant.items.food = 0;
@@ -426,7 +432,7 @@ function Anthill(){
 					_ant.go_home();
 				}
 			}
-		}
+		};
 
 		/* Search food in map */
 		this.search_food = function(){
@@ -445,7 +451,7 @@ function Anthill(){
 			}
 
 
-			if(_ant.status.task.angle == undefined){
+			if(_ant.status.task.angle === undefined){
 				/* Ant "choose" one direction to go (360° angle) */
 				// console.log(_ant.id + ' searching food');
 				_ant.status.task.angle = getRandom(0,360);
@@ -468,7 +474,7 @@ function Anthill(){
 				// console.log(_ant.status.task.angle);
 			}else if(_ant.position.y > _hill.global.height){
 				// console.log('y > h')
-				if(getRandom(0,1) == 1){
+				if(getRandom(0,1) === 1){
 					_ant.status.task.angle = getRandom(0,89);	
 				}else{
 					_ant.status.task.angle = 315;
@@ -479,39 +485,40 @@ function Anthill(){
 			var angle = _ant.status.task.angle;
 
 
-
+			var gox,
+				goy;
 			if(angle >= 0 && angle < 45){
 				/* 0° */
-				var gox = getRandom(_ant.position.x - 15, _ant.position.x + 15);
-				var goy = getRandom(_ant.position.y - 15, _ant.position.y - 25);
+				gox = getRandom(_ant.position.x - 15, _ant.position.x + 15);
+				goy = getRandom(_ant.position.y - 15, _ant.position.y - 25);
 			}else if(angle >= 45 && angle < 90){
 				/* 45° */
-				var gox = getRandom(_ant.position.x, _ant.position.x + 35);
-				var goy = getRandom(_ant.position.y, _ant.position.y - 35);
+				gox = getRandom(_ant.position.x, _ant.position.x + 35);
+				goy = getRandom(_ant.position.y, _ant.position.y - 35);
 			}else if(angle >= 90 && angle < 135){
 				/* 90° */
-				var gox = getRandom(_ant.position.x + 10, _ant.position.x + 30);
-				var goy = getRandom(_ant.position.y - 20, _ant.position.y + 20);
+				gox = getRandom(_ant.position.x + 10, _ant.position.x + 30);
+				goy = getRandom(_ant.position.y - 20, _ant.position.y + 20);
 			}else if(angle >= 135 && angle < 180){
 				/* 135° */
-				var gox = getRandom(_ant.position.x, _ant.position.x + 35);
-				var goy = getRandom(_ant.position.y, _ant.position.y + 35);
+				gox = getRandom(_ant.position.x, _ant.position.x + 35);
+				goy = getRandom(_ant.position.y, _ant.position.y + 35);
 			}else if(angle >= 180 && angle < 225){
 				/* 180° */
-				var gox = getRandom(_ant.position.x - 15, _ant.position.x + 15);
-				var goy = getRandom(_ant.position.y + 15, _ant.position.y + 25);
+				gox = getRandom(_ant.position.x - 15, _ant.position.x + 15);
+				goy = getRandom(_ant.position.y + 15, _ant.position.y + 25);
 			}else if(angle >= 225 && angle < 270){
 				/* 225 */
-				var gox = getRandom(_ant.position.x, _ant.position.x - 35);
-				var goy = getRandom(_ant.position.y, _ant.position.y + 35);
+				gox = getRandom(_ant.position.x, _ant.position.x - 35);
+				goy = getRandom(_ant.position.y, _ant.position.y + 35);
 			}else if(angle >= 270 && angle < 315){
 				/* 225 */
-				var gox = getRandom(_ant.position.x - 10, _ant.position.x - 30);
-				var goy = getRandom(_ant.position.y - 20, _ant.position.y + 20);
+				gox = getRandom(_ant.position.x - 10, _ant.position.x - 30);
+				goy = getRandom(_ant.position.y - 20, _ant.position.y + 20);
 			}else if(angle >= 315){
 				/* 315 */
-				var gox = getRandom(_ant.position.x, _ant.position.x - 35);
-				var goy = getRandom(_ant.position.y, _ant.position.y - 35);
+				gox = getRandom(_ant.position.x, _ant.position.x - 35);
+				goy = getRandom(_ant.position.y, _ant.position.y - 35);
 			}
 			
 			// var goy = _ant.position.y;
@@ -520,23 +527,23 @@ function Anthill(){
 			_ant.go(gox, goy);
 			_ant.list_actions.push(_ant.search_food);
 
-		}
+		};
 
 		/* Stop moving */
 		this.stop = function(){
 			_ant.next_position = undefined;
 			// delete _ant.callback;
-		}
+		};
 
 		this.eat = function(){
-			if(_ant.position.x == _hill.position.x && _ant.position.y == _hill.position.y){
+			if(_ant.position.x === _hill.position.x && _ant.position.y === _hill.position.y){
 				if(_hill.status.food > 0){
 					if(_ant.status.hungry > 0){
 						console.log('go eat!');
 						_hill.status.food -= 1;
 						_ant.status.hungry -= 2;
 						_hill.update();
-						_ant.list_actions = [_ant.eat]
+						_ant.list_actions = [_ant.eat];
 						// _ant.list_actions.push(_ant.eat);
 						setTimeout(_ant.callback, 1200);
 					}else{
@@ -555,7 +562,7 @@ function Anthill(){
 				_ant.list_actions.push(_ant.eat);
 				_ant.callback();
 			}
-		}
+		};
 
 		/* Die */
 		this.die = function(){
@@ -563,24 +570,24 @@ function Anthill(){
 			// _hill.status.population -= 1;
 			_hill.update();
 			delete _hill.ants[_ant.id];
-		}
+		};
 
 		this.go = function(x,y){
 			_ant.next_position = {
 				x : x,
 				y : y
-			}
-		}
+			};
+		};
 
 		this.go_home = function(){
 			_ant.status.busy = 1;
 			_ant.go(_hill.position.x, _hill.position.y);
-		}
+		};
 
 		this.feed = setInterval(function() {
 			_ant.status.hungry += 1;
 			if(_ant.status.hungry > 30){
-				console.log('Die hungry :*')
+				console.log('Die hungry :*');
 				_ant.die();
 			}else if(_ant.status.hungry > 15){
 				_ant.status.busy = 1;
@@ -591,9 +598,9 @@ function Anthill(){
 		}, _hill.global.timer_hungry);
 
 		/* Tired ants? */
-		// this.sleepy = setInterval(function() {
-		// 	_ant.status.sleep += 1;
-		// }, _hill.global.timer_sleep);
+		//this.sleepy = setInterval(function() {
+		//	_ant.status.sleep += 1;
+		//}, _hill.global.timer_sleep);
 
 
 		/* Old ants dies */
@@ -602,7 +609,7 @@ function Anthill(){
 			_ant.die();
 		},_ant.lifetime);
 		
-	}
+	};
 
 
 
@@ -613,16 +620,14 @@ function Anthill(){
 			add_food = document.getElementById('add_food');
 
 
-	    if (e.pageX || e.pageY) {
-	      canvasX = e.pageX;
-	      canvasY = e.pageY;
-	    }
-	    else {
-	      canvasX = e.clientX + document.body.scrollLeft +
-	           document.documentElement.scrollLeft;
-	      canvasY = e.clientY + document.body.scrollTop +
-	           document.documentElement.scrollTop;
-	    }
+		if (e.pageX || e.pageY) {
+			canvasX = e.pageX;
+			canvasY = e.pageY;
+		}
+		else {
+			canvasX = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+			canvasY = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+		}
 
 		canvasX -= element.offsetLeft;
 		canvasY -= element.offsetTop;
@@ -641,36 +646,37 @@ function Anthill(){
 			}
 		} 
 
-	    menu.style.top = (mouseY+window.scrollY)+'px';
-	    menu.style.left = mouseX+'px';
-	    menu.style.display = 'block';
+		menu.style.top = (mouseY+window.scrollY)+'px';
+		menu.style.left = mouseX+'px';
+		menu.style.display = 'block';
 
-	    add_food.onclick = function(){
-		    var food = new _hill.Food();
-		    food.create(canvasX, canvasY);
-	    }
+		add_food.onclick = function(){
+			var food = new _hill.Food();
+			food.create(canvasX, canvasY);
+		};
 
-	    menu.onclick = function(){
-	    	 menu.style.display = 'none'
-	    }
+		menu.onclick = function(){
+			menu.style.display = 'none';
+		};
 
 
-	    // var food = new _hill.Food();
-	    // food.create(mouseX, mouseY);
-	}
+		// var food = new _hill.Food();
+		// food.create(mouseX, mouseY);
+	};
 
 
 }
 
 
 function getRandom(from,to){
-    return Math.floor(Math.random()*(to-from+1)+from);
+	return Math.floor(Math.random()*(to-from+1)+from);
 }
 
 function objSize(obj) {
   var len = obj.length ? --obj.length : 0;
-    for (var k in obj)
-      len++;
+	for (var k in obj){
+		len++;
+	}
   return len;
 }
 
