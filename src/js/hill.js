@@ -23,7 +23,7 @@ function Anthill(){
 		ant_color		: "rgba(60,10,10,1)",
 		ant_action_color: "rgba(240,20,20,0.01)",
 		timer			: 18,
-		log 			: false
+		log				: false
 	},
 	_ctx = element.getContext("2d"),
 	_status = {
@@ -43,13 +43,13 @@ function Anthill(){
 			return Math.floor(Math.random()*(to-from+1)+from);
 		},
 		objSize : function(obj) {
-		  var len = obj.length ? --obj.length : 0;
+			var len = obj.length ? --obj.length : 0;
 			for (var k in obj){
 				len++;
 			}
-		  return len;
+			return len;
 		}
-	}
+	};
 
 	/* Canvas */
 	var _canvas = {
@@ -77,7 +77,7 @@ function Anthill(){
 		clear : function(){
 			_ctx.clearRect(0, 0, _options.width, _options.height);
 		}
-	}
+	};
 
 
 	/* Hill private functions */
@@ -119,7 +119,7 @@ function Anthill(){
 			document.getElementById('food').innerHTML = _status.food;
 			document.getElementById('ants').innerHTML = _utils.objSize(_ants);
 		}
-	}
+	};
 
 
 	/* Ant */
@@ -171,15 +171,15 @@ function Anthill(){
 		var death = setTimeout(function(){
 			_ant.die();
 		},this.lifetime);
-	};
+	}
 
 	Ant.prototype.log = function(msg) {
 		if(console && console.log && _options.log){
 			if(typeof msg === 'object'){
-				console.log(this.id + ' Object:')
+				console.log(this.id + ' Object:');
 				console.log(msg);
 			}else{
-				console.log(this.id + ': ' + msg)
+				console.log(this.id + ': ' + msg);
 			}
 		}
 	};
@@ -253,7 +253,7 @@ function Anthill(){
 		this.status.task.route.callback: callback called at the end of route
 	*/
 	Ant.prototype.follow_route = function(route){
-		this.log('follow route')
+		this.log('follow route');
 		for (var i in route){
 			var position = route[i];
 			// this.log(position);
@@ -338,7 +338,7 @@ function Anthill(){
 
 		if(_utils.objSize(this.mapInfo.foods) > 0){
 			// console.log(this.status.task.route);
-			this.log('know were food is')
+			this.log('know were food is');
 			this.stop();
 			this.get_food();
 			return;
@@ -482,16 +482,16 @@ function Anthill(){
 				this.list_actions.push(this.eat);
 			}
 		}, _options.timer_hungry);
-	}
+	};
 
 	/* Food */
 	function Food(){
 		var _food = this;
-	};
+	}
 
 	Food.prototype.create = function(x, y){
-		x = (x != undefined) ? x : _utils.getRandom(100, _options.width-100);
-		y = (y != undefined) ? y : _utils.getRandom(100, _options.height-100);
+		x = (x !== undefined) ? x : _utils.getRandom(100, _options.width-100);
+		y = (y !== undefined) ? y : _utils.getRandom(100, _options.height-100);
 
 		this.creationDate = new Date();
 		this.id = '_' + new Date().getTime();
@@ -646,26 +646,26 @@ function Anthill(){
 		var ant = new Ant();
 		// ant.create();
 		return ant;
-	}
+	};
 
 	/* Public functions */
 	hill.createFood = function(x,y){
 		var food = new Food();
 		food.create(x,y);
 		return food;
-	}
+	};
 
 	hill.getAnts = function(){
 		return _ants;
-	}
+	};
 
 	hill.logOn = function(){
 		_options.log = true;
-	}
+	};
 
 	hill.logOff = function(){
 		_options.log = false;
-	}
+	};
 
 
 	_hill.create();
@@ -691,8 +691,8 @@ function Anthill(){
 		canvasX -= element.offsetLeft;
 		canvasY -= element.offsetTop;
 
-		for (var i in _hill.ants){
-			var ant = _hill.ants[i];
+		for (var i in _ants){
+			var ant = _ants[i];
 
 			var squareX = Math.pow(Math.abs(ant.position.x - canvasX), 2);
 			var squareY = Math.pow(Math.abs(ant.position.y - canvasY), 2);

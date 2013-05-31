@@ -16,7 +16,7 @@ module.exports = function(grunt) {
     uglify: {
       my_target: {
         files: {
-          'build/js/ants.js': ['src/js/ants.js']
+          'build/js/hill.js': ['src/js/hill.js']
         }
       }
     },
