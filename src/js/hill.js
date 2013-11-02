@@ -21,7 +21,7 @@ function Anthill(){
 		hill_radius		: 8,
 		hill_color		: "rgba(200,20,20,1)",
 		ant_color		: "rgba(60,10,10,1)",
-		ant_action_color: "rgba(240,20,20,0.01)",
+		ant_action_color: "rgba(240,20,20,0.05)",
 		timer			: 18,
 		log				: false
 	},
@@ -48,6 +48,9 @@ function Anthill(){
 				len++;
 			}
 			return len;
+		},
+		formatTime : function(d){
+			return d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds()
 		}
 	};
 
@@ -97,23 +100,23 @@ function Anthill(){
 			hill.createFood();
 			setTimeout(function(){
 				hill.createFood();
-			}, 20);
+			}, 50);
 
 			setTimeout(function(){
 				hill.createFood();
-			}, 50);
+			}, 150);
 
 			// hill.logOn();
 			// hill.create();
 
-			var timerAnts = setInterval(function(){
-				var ant = hill.createAnt();
-				ant.get_food();
-			}, 200);
+			// var timerAnts = setInterval(function(){
+			// 	var ant = hill.createAnt();
+			// 	ant.get_food();
+			// }, 600);
 
-			setTimeout(function(){
-				clearInterval(timerAnts);
-			}, 8000);
+			// setTimeout(function(){
+			// 	clearInterval(timerAnts);
+			// }, 12000);
 		},
 		update : function(){
 			document.getElementById('food').innerHTML = _status.food;
@@ -123,7 +126,7 @@ function Anthill(){
 
 
 	/* Ant */
-	function Ant(){
+	function Ant(opts){
 		_ant = this;
 		this.creationDate = new Date();
 		this.id = '_' + new Date().getTime();
@@ -142,15 +145,16 @@ function Anthill(){
 			y : _position.y
 		};
 		this.color = _options.ant_color;
+		// this.color = 'rgba('+_utils.getRandom(0,255)+','+ _utils.getRandom(0,255)+','+ _utils.getRandom(0,255)+', 1)';
 		this.radius = 2;
-		this.action_area = 30;
+		this.action_area = 15;
 		this.action_color = _options.ant_action_color;
 
-		// if(opts && opts.type){
-			// this.type = opts.type;
-		// }else{
-			this.type = 0;
-		// }
+		if(opts && opts.type){
+			this.type = opts.type;
+		}else{
+			this.type = 'worker';
+		}
 		
 		this.status = {
 			sleep		: 0,
@@ -165,7 +169,7 @@ function Anthill(){
 		_status.population += 1;
 		_hill.update();
 
-		this.lifetime = _utils.getRandom(120000,180000);
+		this.lifetime = _utils.getRandom(90000,120000);
 		// this.lifetime = 500;
 
 		var death = setTimeout(function(){
@@ -237,12 +241,12 @@ function Anthill(){
 	/* Synchronize ant information */
 	Ant.prototype.communicate = function(ant2){
 		for (var i in ant2.mapInfo.foods){
-			if(this.mapInfo.foods[i] && ant2.mapInfo.foods[i]){
+			if(this.mapInfo.foods[i] && this.mapInfo.foods[i].route && ant2.mapInfo.foods[i] && ant2.mapInfo.foods[i].route){
 				if(ant2.mapInfo.foods[i].route.length < this.mapInfo.foods[i].route.length){
 					this.mapInfo.foods[i].route = ant2.mapInfo.foods[i].route;
 				}
 			}else{
-				this.mapInfo.foods[i] = ant2.mapInfo.foods[i];
+				// this.mapInfo.foods[i] = ant2.mapInfo.foods[i];
 			}
 		}
 	};
@@ -331,7 +335,7 @@ function Anthill(){
 		this.last_position = this.position;
 
 		/*
-			Ant move "randomly" in one direction  find food
+			Ant move "randomly" in one direction find food
 		*/
 		this.status.busy = 1;
 		this.status.task.label = 'searching_food';
@@ -466,7 +470,7 @@ function Anthill(){
 
 	Ant.prototype.go_home = function(){
 		this.status.busy = 1;
-		this.go(_hill.position.x, _hill.position.y);
+		this.goforma(_hill.position.x, _hill.position.y);
 	};
 
 	Ant.prototype.feed = function(){
@@ -483,6 +487,29 @@ function Anthill(){
 			}
 		}, _options.timer_hungry);
 	};
+
+	Ant.prototype.select = function(){
+		console.log('select');
+		if(_hill.selected_id && _ants[_hill.selected_id]){
+			_ants[_hill.selected_id].selected = false;
+		}
+		_hill.selected_id = this.id;
+		this.selected = true;
+		// this.color = 'rgba(255,0,0,1)';
+		// this.action_color = 'rgba(255,0,0,0.1)';
+		var str = '<h2>Ant</h2>';
+		str += 'ID: '+ this.id + '<br>';
+		str += 'Creation: '+ _utils.formatTime(this.creationDate) + '<br>';
+		str += 'Lifetime: '+ this.lifetime + '<br>';
+		str += 'Hungry: '+ this.status.hungry + '<br>';
+		str += 'Type: '+ this.type + '<br>';
+		str += 'Task: '+ this.status.task.label + '<br>';
+		str += '<br><br><br>';
+		str += '<a class="btn btn-primary" href="javascript:hill.getAnts(\''+this.id+'\').die();">Die</a>';
+		str += '<a class="btn btn-primary" href="javascript:hill.getAnts(\''+this.id+'\').get_food();">Get Food</a>';
+		str += '<a class="btn btn-primary" href="javascript:hill.getAnts(\''+this.id+'\').stop();">Stop</a>';
+		document.getElementById('object-status').innerHTML = str;
+	}
 
 	/* Food */
 	function Food(){
@@ -632,9 +659,14 @@ function Anthill(){
 					// ant.callback();
 				}
 			}
-			
-			_canvas.circle(ant.position.x, ant.position.y, ant.action_area, ant.action_color);
-			_canvas.circle(ant.position.x, ant.position.y, ant.radius, ant.color);
+			if(ant.selected){
+				_canvas.circle(ant.position.x, ant.position.y, ant.action_area, 'rgba(255,0,0,0.3)');
+				_canvas.circle(ant.position.x, ant.position.y, ant.radius, 'rgba(155,0,0,1)');
+			}else{
+				_canvas.circle(ant.position.x, ant.position.y, ant.action_area, ant.action_color);
+				_canvas.circle(ant.position.x, ant.position.y, ant.radius, ant.color);
+			}
+
 		}
 	};
 
@@ -655,7 +687,10 @@ function Anthill(){
 		return food;
 	};
 
-	hill.getAnts = function(){
+	hill.getAnts = function(id){
+		if(id){
+			return _ants[id];
+		}
 		return _ants;
 	};
 
@@ -699,8 +734,8 @@ function Anthill(){
 			var hypothenuse = Math.sqrt(squareX + squareY);
 			var distance = hypothenuse - ant.radius - 10;
 
-			if(distance <= 0){
-				ant.die();
+			if(distance <= 5){
+				ant.select();
 				return;
 			}
 		} 

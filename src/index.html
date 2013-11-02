@@ -36,7 +36,7 @@
 
         <div class="nav-collapse collapse">
           <div class="navbar-form pull-right anthill-status">
-            Ants: <span id="ants"></span> | Food: <span id="food"></span>
+            
           </div>
         </div><!--/.nav-collapse -->
       </div>
@@ -67,8 +67,18 @@
       
     </div>
     <div class="row">
-      <div class="span12">
-        <canvas id="canvas" width="1150" height="600"></canvas>
+      <div class="span9">
+        <canvas id="canvas" width="800" height="600"></canvas>
+      </div>
+      <div class="span3">
+        <a class="btn btn-primary" href="javascript:hill.createAnt();">Create Ant</a>
+        <div class="anthill-status">
+          Ants: <span id="ants"></span> <br>
+          Food: <span id="food"></span>
+        </div>
+        <br><br>
+        <div id="object-status">
+        </div>
       </div>
     </div>
   </div>
