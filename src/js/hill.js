@@ -15,26 +15,26 @@ function Anthill(){
 	element = document.getElementById("canvas"),
 	_options = {
 		timer_sleep		: 7000,
-		timer_hungry	: 5000,
+		timer_hungry	: 15000,
 		width			: element.offsetWidth,
 		height			: element.offsetHeight,
 		hill_radius		: 8,
 		hill_color		: "rgba(200,20,20,1)",
 		ant_color		: "rgba(60,10,10,1)",
-		ant_action_color: "rgba(240,20,20,0.05)",
+		ant_action_color: "rgba(240,20,20,0.02)",
 		timer			: 18,
-		log				: false
+		log				: true
 	},
 	_ctx = element.getContext("2d"),
 	_status = {
 		population : 0,
 		food : 50
 	},
-	_ants = {},
-	_foods = {},
-	_pheromones = {},
-	_trash = {},
-	_position;
+	_ants = [],
+	_foods = [],
+	_pheromones = [],
+	_position,
+	_names = ['Abi','Æinridi','Æirik','Ærinmund','Ærnmund','Æsbiorn','Æskil','Agnar','Aki','Alf','Alfarin','Alfgeir','Ali','Alrik','Alvi','Amundi','An','Andvett','Anund','Arfast','Ari','Arinbjorn','Armod','Arnbjorn','Arngeir','Arngrim','Arni','Arnfinn','Arnkel','Arnor','Arnstein','Arnvid','Asbjorn','Asgaut','Asgeir','Asgrim','Aslak','Asmund','Åsmund','Assur','Asvald','Athils','Atli','Audgisil','Audun','Authun','Galti','Gamal','Gaut','Gauti','Gæda','Gæira','Gæirmund','Gærhialm','Gærrar','Geir','Geirmund','Geirstein','Geitir','Gellir','Geri','Gest','Giermund','Gilli','Gils','Gizor','Gizur','Gorm','Glum','Gnupa','Grani','Gretter','Grim','Griotgard','Guda','Gudmund','Gudrik','Gudrod','Gudvær','Gufi','Gulli','Gunbjorn','Gunnald','Gunnar','Gunnbjorn','Gunnkel','Gunnlaug','Gunnlæif','Gunnvid','Guthorm','Gylfi','Gyrd','Kalf','Kar','Käre','Kari','Karl','Karli','Karsi','Kætil','Kætilfast','Kætilmund','Kætiløy','Ketilbiorn','Ketill','Kisping','Kjallak','Kjartan','Knut','King','Laxdale','Kodran','Kol','Kolbein','Kolfinn','Koll','Kollskegg','Kollsvein','Kori','Kotkell','Kraki','Kveldulf','Lambi','Leif','Leiknir','Lifstæn','Lini','Liut','Ljot','Ludin','Lyting','Naddod','Nafni','Nasi','Nikolas','Northri','Njal','Odd','Oddløg','Olaf','Olæ','Olæif','Oleif','Ofieg','Olvir','Onem','Onund','Øpir','Orlyg','Orm','Orn','Ornolf','Orøkia','Ospak','Osvald','Osvif','Otkel','Ottar','Otrygg','Øybiorn','Øystæin','Øysten','Oystæin','Ozur','Banki','Bard','Bardi','Beigarth','Beiner','Berg','Egil','Bergfinn','Bergthor','Bergvid','Bersi','Bior','Bjalki','Bjarki','Bjarni','Bjorgolf','Bjorn','Blæng','Boe','Bolli','Bolverk','Bork','Bothvar','Bram','Brand','Bræsi','Brodd','Broddi','Bruni','Bui','Byrnjolf'];
 
 
 	/* Utils */
@@ -44,6 +44,7 @@ function Anthill(){
 		},
 		objSize : function(obj) {
 			var len = obj.length ? --obj.length : 0;
+			if(len > 0) return len;
 			for (var k in obj){
 				len++;
 			}
@@ -97,26 +98,6 @@ function Anthill(){
 
 			_hill.update();
 
-			hill.createFood();
-			setTimeout(function(){
-				hill.createFood();
-			}, 50);
-
-			setTimeout(function(){
-				hill.createFood();
-			}, 150);
-
-			// hill.logOn();
-			// hill.create();
-
-			// var timerAnts = setInterval(function(){
-			// 	var ant = hill.createAnt();
-			// 	ant.get_food();
-			// }, 600);
-
-			// setTimeout(function(){
-			// 	clearInterval(timerAnts);
-			// }, 12000);
 		},
 		update : function(){
 			document.getElementById('food').innerHTML = _status.food;
@@ -129,12 +110,11 @@ function Anthill(){
 	function Ant(opts){
 		_ant = this;
 		this.creationDate = new Date();
-		this.id = '_' + new Date().getTime();
+		this.id = _utils.objSize(_ants) + '_' + new Date().getTime();
 		this.speed = (_utils.getRandom(600,900)/1000);
+		this.name = _names[_utils.getRandom(0,_names.length-1)];
 		this.mapInfo = {
-			foods	: {},
-			trashes	: {},
-			dumps	: {}
+			foods	: {}
 		};
 		this.items = {
 			food	: 0
@@ -144,10 +124,10 @@ function Anthill(){
 			x : _position.x,
 			y : _position.y
 		};
-		this.color = _options.ant_color;
-		// this.color = 'rgba('+_utils.getRandom(0,255)+','+ _utils.getRandom(0,255)+','+ _utils.getRandom(0,255)+', 1)';
+		// this.color = _options.ant_color;
+		this.color = 'rgba('+_utils.getRandom(0,255)+','+ _utils.getRandom(0,255)+','+ _utils.getRandom(0,255)+', 1)';
 		this.radius = 2;
-		this.action_area = 15;
+		this.action_area = 6;
 		this.action_color = _options.ant_action_color;
 
 		if(opts && opts.type){
@@ -165,6 +145,7 @@ function Anthill(){
 
 		this.list_actions = [];
 
+		// hill.ants.push(this);	
 		_ants[this.id] = this;
 		_status.population += 1;
 		_hill.update();
@@ -172,344 +153,361 @@ function Anthill(){
 		this.lifetime = _utils.getRandom(90000,120000);
 		// this.lifetime = 500;
 
-		var death = setTimeout(function(){
-			_ant.die();
-		},this.lifetime);
-	}
 
-	Ant.prototype.log = function(msg) {
-		if(console && console.log && _options.log){
-			if(typeof msg === 'object'){
-				console.log(this.id + ' Object:');
-				console.log(msg);
-			}else{
-				console.log(this.id + ': ' + msg);
-			}
-		}
-	};
-
-	Ant.prototype.create = function(opts){
-
-
-	};
-
-	Ant.prototype.callback = function(){
-		// this.log('callback');
-		if(this.list_actions.length > 0){
-			var next_action = this.list_actions.shift();
-			if(typeof next_action === 'function'){
-				// this.log('function');
-				next_action.call(this);
-			}else if(typeof next_action === 'string' && typeof this[next_action] === 'function'){
-				// this.log('string');
-				this[next_action].call(this);
-			}else if(typeof next_action === 'object'){
-				// this.log('object');
-				var strToEval = 'next_action[0].call(this';
-
-				for (var i=1; i<next_action.length; i++) {
-					strToEval += ',next_action['+i+']';
-				}
-				strToEval += ');';
-				eval(strToEval);
-			}
-		}
-	};
-
-	Ant.prototype.update_food_info = function(food){
-		if(!this.mapInfo.foods[food.id]){
-			this.mapInfo.foods[food.id] = {
-				position	: food.position
-			};
-		}
-
-		this.mapInfo.foods[food.id].updateDate		= new Date().getTime();
-		this.mapInfo.foods[food.id].food			= food.food;
-
-		if(this.status.task && this.status.task.label === 'searching_food' && this.status.task.route){
-			this.status.task.route.unshift([_position.x, _position.y]);
-			this.status.task.route.push([food.position.x, food.position.y]);
-			this.mapInfo.foods[food.id].route = this.status.task.route;
-			this.mapInfo.foods[food.id].reverse_route = this.status.task.route.slice().reverse();
-
-			_pheromones[new Date().getTime()] = {
-				route : this.status.task.route.slice()
-			};
-		}
-	};
-
-	/* Synchronize ant information */
-	Ant.prototype.communicate = function(ant2){
-		for (var i in ant2.mapInfo.foods){
-			if(this.mapInfo.foods[i] && this.mapInfo.foods[i].route && ant2.mapInfo.foods[i] && ant2.mapInfo.foods[i].route){
-				if(ant2.mapInfo.foods[i].route.length < this.mapInfo.foods[i].route.length){
-					this.mapInfo.foods[i].route = ant2.mapInfo.foods[i].route;
-				}
-			}else{
-				// this.mapInfo.foods[i] = ant2.mapInfo.foods[i];
-			}
-		}
-	};
-
-	/* 
-		arg "route" : array of positions [a,b], [c,d], [d,f]]
-		this.status.task.route = object to save route positions
-		this.status.task.route.callback: callback called at the end of route
-	*/
-	Ant.prototype.follow_route = function(route){
-		this.log('follow route');
-		for (var i in route){
-			var position = route[i];
-			// this.log(position);
-
-			this.list_actions.push([this.go, position[0], position[1]]);
-		}
-	};
-
-	Ant.prototype.get_food = function(){
-		this.log('get_food');
-		this.status.busy = 1;
-		this.status.task.label = 'getting_food';
-
-		// console.log(this.id + ' get_food()');
-
-		if(_utils.objSize(this.mapInfo.foods) <= 0){
-			this.log('dont know any food source.');
-			this.search_food();
-			return;
-		}
-
-		if(this.items.food <= 0){ 
-			// console.log(this.id + ' is going to get food');
-			/* Ant is not carring food */
-
-			/* Search one source of food */
-			// console.log(this.mapInfo.foods);
-			for (var i in this.mapInfo.foods){
-				var food = _foods[i];
-
-				// console.log(food);
-
-				/* This source have food? */
-				if(food.food > 0){
-					if(this.position.x === food.position.x && this.position.y === food.position.y){
-						// console.log(this.id + ' get +10 food');
-						/* 
-						Ant is in this food source, get food to take to the anthill
-						*/
-						
-						getFood = (food.food > 5) ? 5 : food.food;
-						this.items.food = getFood;
-						food.food -= getFood;
-						// console.log(this.mapInfo.foods[i].route);
-						this.follow_route(this.mapInfo.foods[i].reverse_route);
-					}else{
-						this.log(' is going to food source '+ i);
-						
-						this.follow_route(this.mapInfo.foods[i].route);
-					}
-					this.list_actions.push(this.get_food);
-					this.callback();
-					break;
-				}
-				// break;
-			}
-		}else{
-			if(this.position.x === _position.x && this.position.y === _position.y){
-				// console.log(this.id + ' leave +10 food in anthill');
-				_status.food += this.items.food;
-				this.items.food = 0;
-				_hill.update();
-				this.get_food();
-			}else{
-				// console.log('go home');
-				this.go_home();
-			}
-		}
-	};
-
-	/* Search food in map */
-	Ant.prototype.search_food = function(){
-		this.log('search_food');
-		
-		this.last_position = this.position;
-
-		/*
-			Ant move "randomly" in one direction find food
-		*/
-		this.status.busy = 1;
-		this.status.task.label = 'searching_food';
-
-		if(_utils.objSize(this.mapInfo.foods) > 0){
-			// console.log(this.status.task.route);
-			this.log('know were food is');
-			this.stop();
-			this.get_food();
-			return;
-		}
-
-
-		if(this.status.task.angle === undefined){
-			/* Ant "choose" one direction to go (360° angle) */
-			this.log(' define angle to search food');
-			this.status.task.angle = _utils.getRandom(0,360);
-			this.status.task.route = [];
-			this.status.search_counter = 0;
-		}
-
-		/* only move into canvas */
-		if(this.position.x < 0){
-			this.status.task.angle = _utils.getRandom(45,135);
-		}else if(this.position.x > _options.width){
-			this.status.task.angle = _utils.getRandom(225,315);
-		}else if(this.position.y < 0){
-			this.status.task.angle = _utils.getRandom(135,225);
-		}else if(this.position.y > _options.height){
-			if(_utils.getRandom(0,1) === 1){
-				this.status.task.angle = _utils.getRandom(0,89);	
-			}else{
-				this.status.task.angle = 315;
-			}
-		}
-
-		var angle = this.status.task.angle;
-
-
-		var gox,
-			goy;
-		if(angle >= 0 && angle < 45){
-			/* 0° */
-			gox = _utils.getRandom(this.position.x - 15, this.position.x + 15);
-			goy = _utils.getRandom(this.position.y - 15, this.position.y - 25);
-		}else if(angle >= 45 && angle < 90){
-			/* 45° */
-			gox = _utils.getRandom(this.position.x, this.position.x + 35);
-			goy = _utils.getRandom(this.position.y, this.position.y - 35);
-		}else if(angle >= 90 && angle < 135){
-			/* 90° */
-			gox = _utils.getRandom(this.position.x + 10, this.position.x + 30);
-			goy = _utils.getRandom(this.position.y - 20, this.position.y + 20);
-		}else if(angle >= 135 && angle < 180){
-			/* 135° */
-			gox = _utils.getRandom(this.position.x, this.position.x + 35);
-			goy = _utils.getRandom(this.position.y, this.position.y + 35);
-		}else if(angle >= 180 && angle < 225){
-			/* 180° */
-			gox = _utils.getRandom(this.position.x - 15, this.position.x + 15);
-			goy = _utils.getRandom(this.position.y + 15, this.position.y + 25);
-		}else if(angle >= 225 && angle < 270){
-			/* 225 */
-			gox = _utils.getRandom(this.position.x, this.position.x - 35);
-			goy = _utils.getRandom(this.position.y, this.position.y + 35);
-		}else if(angle >= 270 && angle < 315){
-			/* 225 */
-			gox = _utils.getRandom(this.position.x - 10, this.position.x - 30);
-			goy = _utils.getRandom(this.position.y - 20, this.position.y + 20);
-		}else if(angle >= 315){
-			/* 315 */
-			gox = _utils.getRandom(this.position.x, this.position.x - 35);
-			goy = _utils.getRandom(this.position.y, this.position.y - 35);
-		}
-		
-		// var goy = this.position.y;
-		this.status.task.route.push([gox, goy]);
-		// console.log(this.status.task.route)
-		this.go(gox, goy);
-		this.list_actions.push('search_food');
-	};
-
-	/* Stop moving */
-	Ant.prototype.stop = function(){
-		this.next_position = undefined;
-		// delete this.callback;
-	};
-
-	Ant.prototype.eat = function(){
-		if(this.position.x === _hill.position.x && this.position.y === _hill.position.y){
-			if(_status.food > 0){
-				if(this.status.hungry > 0){
-					console.log('go eat!');
-					_status.food -= 1;
-					this.status.hungry -= 2;
-					_hill.update();
-					this.list_actions = [this.eat];
-					// this.list_actions.push(this.eat);
-					setTimeout(this.callback, 1200);
+		this.log = function(msg) {
+			if(console && console.log && _options.log){
+				if(typeof msg === 'object'){
+					console.log(this.name + ' Object:');
+					console.log(msg);
 				}else{
-					console.log('Full of food!');
-					this.status.hungry = 0;
-					this.status.busy = 0;
-					this.list_actions.push(this.get_food);
-					this.callback();
-					// this.sleep();
-					// this.get_food();
+					console.log(this.name + ': ' + msg);
 				}
 			}
-		}else{
-			console.log('Going home to eat.');
-			this.list_actions.push(this.go_home);
-			this.list_actions.push(this.eat);
-			this.callback();
-		}
-	};
-
-	/* Die */
-	Ant.prototype.die = function(){
-		this.log('Ant die!');
-		// _status.population -= 1;
-		delete _ants[this.id];
-		_hill.update();
-	};
-
-	Ant.prototype.go = function(x,y){
-		this.next_position = {
-			x : x,
-			y : y
 		};
-	};
 
-	Ant.prototype.go_home = function(){
-		this.status.busy = 1;
-		this.goforma(_hill.position.x, _hill.position.y);
-	};
 
-	Ant.prototype.feed = function(){
-		setInterval(function() {
-			this.status.hungry += 1;
-			if(this.status.hungry > 30){
-				console.log('Die hungry :*');
-				this.die();
-			}else if(this.status.hungry > 15){
-				this.status.busy = 1;
-				this.status.task.label = 'eating';
+		this.callback = function(){
+			// this.log('callback');
+			if(this.list_actions.length > 0){
+				var next_action = this.list_actions.shift();
+				if(typeof next_action === 'function'){
+					// this.log('function');
+					next_action.call(this);
+				}else if(typeof next_action === 'string' && typeof this[next_action] === 'function'){
+					// this.log('string');
+					this[next_action].call(this);
+				}else if(typeof next_action === 'object'){
+					// this.log('object');
+					var strToEval = 'next_action[0].call(this';
+
+					for (var i=1; i<next_action.length; i++) {
+						strToEval += ',next_action['+i+']';
+					}
+					strToEval += ');';
+					eval(strToEval);
+				}
+			}else{
+				this.log('Nothing to do, it\'s boring');
+			}
+		};
+
+		this.update_food_info = function(food){
+			if(!this.mapInfo.foods[food.id]){
+				this.mapInfo.foods[food.id] = {
+					position	: food.position
+				};
+			}
+
+			this.mapInfo.foods[food.id].updateDate		= new Date().getTime();
+			this.mapInfo.foods[food.id].food			= food.food;
+
+			if(this.status.task && this.status.task.label === 'searching_food' && this.status.task.route){
+				this.status.task.route.unshift([_position.x, _position.y]);
+				this.status.task.route.push([food.position.x, food.position.y]);
+				this.mapInfo.foods[food.id].route = this.status.task.route;
+				this.mapInfo.foods[food.id].reverse_route = this.status.task.route.slice().reverse();
+
+				_pheromones[new Date().getTime()] = {
+					route : this.status.task.route.slice()
+				};
+			}
+		};
+
+		/* Synchronize ant information */
+		this.communicate = function(ant2){
+			// console.log(ant2.mapInfo);
+			// console.log(ant.mapInfo);
+
+			for (var i in ant2.mapInfo.foods){
+				if(_ant.mapInfo.foods[i] && ant2.mapInfo.foods[i]){
+					if(_ant.mapInfo.foods[i].route.length < ant2.mapInfo.foods[i].route.length){
+						console.log('trade info')
+						ant2.mapInfo.foods[i].route = _ant.mapInfo.foods[i].route;
+					}else if(_ant.mapInfo.foods[i].route.length != ant2.mapInfo.foods[i].route.length){
+						_ant.mapInfo.foods[i].route = ant2.mapInfo.foods[i].route;
+					}
+				}else{
+					_ant.mapInfo.foods[i] = ant2.mapInfo.foods[i];
+				}
+			}
+
+		};
+
+		/* 
+			arg "route" : array of positions [a,b], [c,d], [d,f]]
+			this.status.task.route = object to save route positions
+			this.status.task.route.callback: callback called at the end of route
+		*/
+		this.follow_route = function(route){
+			// this.log('follow route');
+			for (var i in route){
+				var position = route[i];
+				// this.log(position);
+
+				this.list_actions.push([this.go, position[0], position[1]]);
+			}
+		};
+
+		this.get_food = function(){
+			// this.log('get_food');
+			this.status.busy = 1;
+			this.status.task.label = 'getting_food';
+
+			// console.log(this.id + ' get_food()');
+
+			if(_utils.objSize(this.mapInfo.foods) <= 0){
+				this.log('I don\'t know any food source.');
+				this.search_food();
+				return;
+			}
+
+			if(this.items.food <= 0){ 
+				// this.log('is going to get food');
+				/* Ant is not carring food */
+
+				/* Search one source of food */
+				// console.log(this.mapInfo.foods);
+				for (var i in this.mapInfo.foods){
+					var food = _foods[i];
+
+					// console.log(food);
+
+					/* This source have food? */
+					if(food.food > 0){
+						if(this.position.x === food.position.x && this.position.y === food.position.y){
+							/* 
+							Ant is in this food source, get food to take to the anthill
+							*/
+							getFood = (food.food > 5) ? 5 : food.food;
+							this.items.food = getFood;
+							food.food -= getFood;
+
+							this.log('I get +'+ getFood +' food');
+
+							// console.log(this.mapInfo.foods[i].route);
+							this.follow_route(this.mapInfo.foods[i].reverse_route);
+						}else{
+							this.log('I\'m going to food source: '+ i);
+							
+							this.follow_route(this.mapInfo.foods[i].route);
+						}
+						this.list_actions.push(this.get_food);
+						this.callback();
+						break;
+					}
+					// break;
+				}
+			}else{
+				if(this.position.x === _position.x && this.position.y === _position.y){
+					// console.log(this.id + ' leave +10 food in anthill');
+					_status.food += this.items.food;
+					this.items.food = 0;
+					_hill.update();
+					this.get_food();
+				}else{
+					// console.log('go home');
+					this.go_home();
+				}
+			}
+		};
+
+		/* Search food in map */
+		this.search_food = function(){
+			// this.log('search_food');
+			
+			this.last_position = this.position;
+
+			/*
+				Ant move "randomly" in one direction find food
+			*/
+			this.status.busy = 1;
+			this.status.task.label = 'searching_food';
+
+			if(_utils.objSize(this.mapInfo.foods) > 0){
+				// console.log(this.status.task.route);
+				this.log('know were food is');
+				this.stop();
+				this.get_food();
+				return;
+			}
+
+
+			if(this.status.task.angle === undefined){
+				/* Ant "choose" one direction to go (360° angle) */
+				// this.log(' define angle to search food');
+				this.status.task.angle = _utils.getRandom(0,360);
+				this.status.task.route = [];
+				this.status.search_counter = 0;
+			}
+
+			/* only move into canvas */
+			if(this.position.x < 0){
+				this.status.task.angle = _utils.getRandom(45,135);
+			}else if(this.position.x > _options.width){
+				this.status.task.angle = _utils.getRandom(225,315);
+			}else if(this.position.y < 0){
+				this.status.task.angle = _utils.getRandom(135,225);
+			}else if(this.position.y > _options.height){
+				if(_utils.getRandom(0,1) === 1){
+					this.status.task.angle = _utils.getRandom(0,89);	
+				}else{
+					this.status.task.angle = 315;
+				}
+			}
+
+			var angle = this.status.task.angle;
+
+
+			var gox,
+				goy;
+			if(angle >= 0 && angle < 45){
+				/* 0° */
+				gox = _utils.getRandom(this.position.x - 15, this.position.x + 15);
+				goy = _utils.getRandom(this.position.y - 15, this.position.y - 25);
+			}else if(angle >= 45 && angle < 90){
+				/* 45° */
+				gox = _utils.getRandom(this.position.x, this.position.x + 35);
+				goy = _utils.getRandom(this.position.y, this.position.y - 35);
+			}else if(angle >= 90 && angle < 135){
+				/* 90° */
+				gox = _utils.getRandom(this.position.x + 10, this.position.x + 30);
+				goy = _utils.getRandom(this.position.y - 20, this.position.y + 20);
+			}else if(angle >= 135 && angle < 180){
+				/* 135° */
+				gox = _utils.getRandom(this.position.x, this.position.x + 35);
+				goy = _utils.getRandom(this.position.y, this.position.y + 35);
+			}else if(angle >= 180 && angle < 225){
+				/* 180° */
+				gox = _utils.getRandom(this.position.x - 15, this.position.x + 15);
+				goy = _utils.getRandom(this.position.y + 15, this.position.y + 25);
+			}else if(angle >= 225 && angle < 270){
+				/* 225 */
+				gox = _utils.getRandom(this.position.x, this.position.x - 35);
+				goy = _utils.getRandom(this.position.y, this.position.y + 35);
+			}else if(angle >= 270 && angle < 315){
+				/* 225 */
+				gox = _utils.getRandom(this.position.x - 10, this.position.x - 30);
+				goy = _utils.getRandom(this.position.y - 20, this.position.y + 20);
+			}else if(angle >= 315){
+				/* 315 */
+				gox = _utils.getRandom(this.position.x, this.position.x - 35);
+				goy = _utils.getRandom(this.position.y, this.position.y - 35);
+			}
+			
+			// var goy = this.position.y;
+			this.status.task.route.push([gox, goy]);
+			// console.log(this.status.task.route)
+			this.go(gox, goy);
+			this.list_actions.push('search_food');
+		};
+
+		/* Stop moving */
+		this.stop = function(){
+			this.next_position = undefined;
+			// delete this.callback;
+		};
+
+		this.eat = function(){
+			this.status.busy = 1;
+			this.status.task.label = 'eat';
+
+			if(this.position.x === _position.x && this.position.y === _position.y){
+				if(_status.food > 0){
+					if(this.status.hungry > 0){
+						this.log('I\'m on ant hill, eating now!');
+						_status.food -= 1;
+						this.status.hungry -= 2;
+						_hill.update();
+						this.list_actions.push('eat');
+						this.callback();
+					}else{
+						this.log('I\'m full, lets get food');
+						this.status.hungry = 0;
+						this.status.busy = 0;
+						this.list_actions.push(this.get_food);
+						this.callback();
+					}
+				}else{
+					this.log('There is no food, we\'re damned!');
+				}
+			}else{
+				console.log('Going home to eat.');
 				this.list_actions.push(this.go_home);
 				this.list_actions.push(this.eat);
+				this.callback();
 			}
-		}, _options.timer_hungry);
-	};
+		};
 
-	Ant.prototype.select = function(){
-		console.log('select');
-		if(_hill.selected_id && _ants[_hill.selected_id]){
-			_ants[_hill.selected_id].selected = false;
+		/* Die */
+		this.die = function(){
+			clearTimeout(_ant.death);
+			clearTimeout(_ant.digestion_interval);
+			this.log('I\'s dark and cold... * died *');
+			// _status.population -= 1;
+			delete _ants[this.id];
+			_hill.update();
+		};
+
+		this.go = function(x,y){
+			this.next_position = {
+				x : x,
+				y : y
+			};
+		};
+
+		this.go_home = function(){
+			this.status.busy = 1;
+			this.go(_position.x, _position.y);
+		};
+
+		this.digestion = function(){
+			// _ant.log('* digestion system activated *');
+			_ant.digestion_interval = setInterval(function() {
+				_ant.status.hungry += 1;
+				if(_ant.status.hungry > 30){
+					_ant.log('I\'m starving! * died * ');
+					_ant.die();
+				}else if(_ant.status.hungry > 15){
+					_ant.log('* hungry *');
+					_ant.eat();
+					// _ant.list_actions.push(this.eat);
+				}
+			}, _options.timer_hungry);
+		};
+
+		this.select = function(){
+			// console.log('select');
+			if(_hill.selected_id && _ants[_hill.selected_id]){
+				_ants[_hill.selected_id].selected = false;
+			}
+			_hill.selected_id = this.id;
+			this.selected = true;
+			// this.color = 'rgba(255,0,0,1)';
+			// this.action_color = 'rgba(255,0,0,0.1)';
+			var str = '<h2>'+ this.name + '</h2>';
+			str += 'ID: '+ this.id + '<br>';
+			str += 'Creation: '+ _utils.formatTime(this.creationDate) + '<br>';
+			str += 'Lifetime: '+ this.lifetime + '<br>';
+			str += 'Hungry: '+ this.status.hungry + '<br>';
+			str += 'Type: '+ this.type + '<br>';
+			str += 'Task: '+ this.status.task.label + '<br>';
+			str += '<br><br><br>';
+			str += '<a class="btn btn-primary" href="javascript:hill.getAnts(\''+this.id+'\').die();">Die</a>';
+			str += '<a class="btn btn-primary" href="javascript:hill.getAnts(\''+this.id+'\').get_food();">Get Food</a>';
+			str += '<a class="btn btn-primary" href="javascript:hill.getAnts(\''+this.id+'\').eat();">Eat</a>';
+			str += '<a class="btn btn-primary" href="javascript:hill.getAnts(\''+this.id+'\').stop();">Stop</a>';
+			document.getElementById('object-status').innerHTML = str;
 		}
-		_hill.selected_id = this.id;
-		this.selected = true;
-		// this.color = 'rgba(255,0,0,1)';
-		// this.action_color = 'rgba(255,0,0,0.1)';
-		var str = '<h2>Ant</h2>';
-		str += 'ID: '+ this.id + '<br>';
-		str += 'Creation: '+ _utils.formatTime(this.creationDate) + '<br>';
-		str += 'Lifetime: '+ this.lifetime + '<br>';
-		str += 'Hungry: '+ this.status.hungry + '<br>';
-		str += 'Type: '+ this.type + '<br>';
-		str += 'Task: '+ this.status.task.label + '<br>';
-		str += '<br><br><br>';
-		str += '<a class="btn btn-primary" href="javascript:hill.getAnts(\''+this.id+'\').die();">Die</a>';
-		str += '<a class="btn btn-primary" href="javascript:hill.getAnts(\''+this.id+'\').get_food();">Get Food</a>';
-		str += '<a class="btn btn-primary" href="javascript:hill.getAnts(\''+this.id+'\').stop();">Stop</a>';
-		document.getElementById('object-status').innerHTML = str;
+
+
+		_ant.death = setTimeout(function(){
+			_ant.die();
+		},this.lifetime);
+
+		_ant.digestion()
 	}
+
+
 
 	/* Food */
 	function Food(){
@@ -644,7 +642,7 @@ function Anthill(){
 						var ant2 = _ants[i];
 
 						/* self collision doesn"t exist */
-						if(ant.id !== ant2.id){
+						if(ant.id !== ant2.id && ant.creationDate < ant2.creationDate){
 							squareX = Math.pow(Math.abs(ant.position.x - ant2.position.x), 2);
 							squareY = Math.pow(Math.abs(ant.position.y - ant2.position.y), 2);
 							hypothenuse = Math.sqrt(squareX + squareY);
@@ -677,6 +675,7 @@ function Anthill(){
 	hill.createAnt = function(){
 		var ant = new Ant();
 		// ant.create();
+		ant.select()
 		return ant;
 	};
 
@@ -708,10 +707,10 @@ function Anthill(){
 
 	/* Clicks */
 	element.onclick  = function(e){
-		var mouseX = window.event.clientX,
-			mouseY = window.event.clientY,
-			menu = document.getElementById('action-menu'),
-			add_food = document.getElementById('add_food');
+		e = e || window.event;
+		var mouseX = e.clientX,
+			mouseY = e.clientY,
+			menu = document.getElementById('action-menu');
 
 
 		if (e.pageX || e.pageY) {
@@ -744,9 +743,6 @@ function Anthill(){
 		menu.style.left = mouseX+'px';
 		menu.style.display = 'block';
 
-		add_food.onclick = function(){
-			hill.createFood(canvasX, canvasY);
-		};
 
 		menu.onclick = function(){
 			menu.style.display = 'none';
@@ -756,7 +752,24 @@ function Anthill(){
 		// var food = new _hill.Food();
 		// food.create(mouseX, mouseY);
 	};
+
 }
 
 
 hill = new Anthill();
+hill.createFood();
+
+for(var i=0; i < 10; i++){
+	ant = hill.createAnt();
+	ant.get_food();
+}
+
+
+
+document.getElementById('add_ant').onclick = function(){
+	hill.createAnt();
+};
+
+document.getElementById('add_food').onclick = function(){
+	hill.createFood(canvasX, canvasY);
+};
