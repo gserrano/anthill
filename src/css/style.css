@@ -1,0 +1,17 @@
+body{
+	padding-top: 60px;
+	background:url(../img/bg.png);
+}
+.anthill-status{
+	/*color: #fff;*/
+	line-height: 20px;
+}
+.brand{
+	font-family: 'Pacifico'
+}
+#canvas{
+  background:rgba(30,150,30,0.1);
+  margin: 0 auto;
+  border: 1px solid #333;
+
+}
