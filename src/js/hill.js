@@ -770,6 +770,7 @@ document.getElementById('add_ant').onclick = function(){
 	hill.createAnt();
 };
 
-document.getElementById('add_food').onclick = function(){
+document.getElementById('add_food').onclick = function(e){
+	e.preventDefault();
 	hill.createFood(canvasX, canvasY);
 };
